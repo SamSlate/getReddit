@@ -1,2 +1,2 @@
 # getReddit
-A client-side javascript wrapper for the Reddit API
+*A client-side javascript wrapper for the Reddit API*
