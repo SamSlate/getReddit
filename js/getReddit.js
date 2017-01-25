@@ -16,25 +16,15 @@ class getReddit{
 		this.loginUri =  'http://redditairplane.com/login/'; //where reddit drops users after authorizing your app
 
 		//uri		
-		this.uriParams = {
-			after: "",
-			before: "",
-			limit: "",
-			show: ""
-		};
+		this.dir = {}; //subredd/user
+		this.uriParams = {};
 		this.uri = '';
 	}	
-	//make URI
-	buildUri(){
-		if(verbose)  console.log("buildUri()");
-		for(var name in this.uriParams) {
-			if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);			
-		}
-	}
 
-	//get
+	//get page (last call for all trains function)
 	go(res, err){
-		this.buildUri();		
+		this.buildUri();
+		if(verbose) console.log("go()", this.uri);
 		if (localStorage.getItem("loggedIn") === true) 
 			this.getAuth(res, err);
 		else 
@@ -61,40 +51,30 @@ class getReddit{
 			};
 			xhr.send();
 	}
+	//get subreddit page
+	subreddit(subreddit){ this.dir.subreddit = subreddit;  return this; }
+	
+	//get user page
+	user(user){ this.dir.user = user;  return this; }
+	userSubmitted(user){ this.user(user); this.userSubmitted = true;  return this; }
 
-//listings -> uriParams
-	after(s){ this.uriParams.after=s; return this; }
-	before(s){  this.uriParams.before=s; return this; }
-	limit(s){  this.uriParams.limit=s; return this; }
-	count(s){  this.uriParams.count=s; return this; }
-	show(s){  this.uriParams.show=s; return this; }
-
-	//get subreddit
-	subreddit(subreddit){
-		if(verbose) console.log("getSubreddit()",subreddit, this);
-
-		this.uri = "/r/"+subreddit+".json"; 
-		return this;
-
+	//make URI
+	buildUri(){
+		//if(verbose) console.log("buildUri()");		
+		if(this.dir.subreddit){
+			this.uri = '/r/'+this.dir.subreddit+'/';
+			if(this.comments) this.uri += 'comments/'+this.article+'/';
+			if(this.uriParams.sort) this.uri += this.uriParams.sort+'/';
+		}
+		if(this.dir.user){
+			this.uri = '/user/'+this.dir.user+'/';
+			if(this.userSubmitted) this.uri += 'submitted/';
+		}
+		//json cap
+		this.uri += '.json';
+		//sprinkle in parameters
+		for(var name in this.uriParams) { if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]) };
 	}
-
-
-
-
-
-
-
-
-
-
-	//get user
-	getUser(user, res, err){
-		this.get("/user/"+user+".json", res, err);
-
-	}
-
-
-
 
 /*
 
@@ -102,6 +82,16 @@ class getReddit{
 	all endpoints listed on https://www.reddit.com/dev/api
 
 */
+
+//listings -> uri parameters
+	after(s){ this.uriParams.after=s; return this; }
+	before(s){  this.uriParams.before=s; return this; }
+	limit(s){  this.uriParams.limit=s; return this; }
+	count(s){  this.uriParams.count=s; return this; }
+	show(s){  this.uriParams.show=s; return this; }
+	sr_detail(s){  this.uriParams.sr_detail=s; return this; }
+//modhashes
+	//afaik these are obsolete
 
 // account
 // /api/v1/me
@@ -115,8 +105,10 @@ class getReddit{
 // /prefs/messaging
 // /prefs/trusted
 // /prefs/where
+
 // captcha
 // /api/needs_captcha
+
 // flair
 // /api/clearflairtemplates
 // /api/deleteflair
@@ -129,11 +121,14 @@ class getReddit{
 // /api/flairtemplate
 // /api/selectflair
 // /api/setflairenabled
+
 // reddit gold
 // /api/v1/gold/gild/fullname
 // /api/v1/gold/give/username
+
 // links & comments
 // /api/comment
+
 // /api/del
 // /api/editusertext
 // /api/hide
@@ -157,17 +152,54 @@ class getReddit{
 // /api/unsave
 // /api/unspoiler
 // /api/vote
+
 // listings
 // /by_id/names
 // /comments/article
+	comments(article){ 
+		this.comments = true;
+		this.article = article;
+		return this; 
+	}
 // /controversial
+	controversial(t){ 
+		this.uriParams.sort = 'controversial';
+		this.uriParams.t = t;
+		return this; 
+	}
 // /duplicates/article
+	duplicates(article){ 
+		this.duplicates = true;
+		this.article = article;
+		return this; 
+	}
 // /hot
+	hot(){ 
+		this.uriParams.sort = 'hot';
+		return this; 
+	}
 // /new
+	newest(){ //-_-
+		this.uriParams.sort = 'new';
+		return this; 
+	}
 // /random
 // /rising
+	rising(){ 
+		this.uriParams.sort = 'rising';
+		return this; 
+	}
 // /top
+	top(t){ 
+		this.uriParams.sort = 'top';
+		this.uriParams.t = t;
+		return this; 
+	}
 // /sort
+	//moot
+	//sort(s){  this.uriParams.sort=s; return this; }
+	//t(s){  this.uriParams.t=s; return this; }
+
 // live threads
 // /api/live/by_id/names
 // /api/live/create
@@ -188,6 +220,7 @@ class getReddit{
 // /live/thread/about
 // /live/thread/contributors
 // /live/thread/discussions
+
 // private messages
 // /api/block
 // /api/collapse_message
@@ -202,8 +235,10 @@ class getReddit{
 // /message/sent
 // /message/unread
 // /message/where
+
 // misc
 // /api/v1/scopes
+
 // moderation
 // /about/edited
 // /about/log
@@ -223,6 +258,7 @@ class getReddit{
 // /api/unignore_reports
 // /api/unmute_message_author
 // /stylesheet
+
 // new modmail
 // /api/mod/bulk_read
 // /api/mod/conversations
@@ -237,6 +273,7 @@ class getReddit{
 // /api/mod/conversations/subreddits
 // /api/mod/conversations/unread
 // /api/mod/conversations/unread/count
+
 // multis
 // /api/filter/filterpath
 // /api/filter/filterpath/r/srname
@@ -247,8 +284,10 @@ class getReddit{
 // /api/multi/multipath
 // /api/multi/multipath/description
 // /api/multi/multipath/r/srname
+
 // search
 // /search
+
 // subreddits
 // /about/banned
 // /about/contributors
@@ -284,6 +323,7 @@ class getReddit{
 // /subreddits/popular
 // /subreddits/search
 // /subreddits/where
+
 // users
 // /api/friend
 // /api/setpermissions
@@ -301,6 +341,7 @@ class getReddit{
 // /user/username/submitted
 // /user/username/upvoted
 // /user/username/where
+
 // wiki
 // /api/wiki/alloweditor/add
 // /api/wiki/alloweditor/del
