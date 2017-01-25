@@ -6,7 +6,6 @@ function defaultErrorCallback(x){
 	if(verbose) console.log("i am the default error callback.");    
 	console.log(x);
 }
-
 //element builder
 function elBuildo(tag,a,text){
 	var node = document.createElement(tag);
@@ -36,7 +35,6 @@ function getCommentPage(response) {
 	//get the goods
 	var pageData = response[0].data.children[0].data;
 	document.querySelector(".main").appendChild(cardBuilder(pageData));
-
 }
 //getPage(commPageLink, getCommentPage, defaultErrorCallback);
 
@@ -55,7 +53,12 @@ function makeFrontpage(res) {
 
 
 var r = new getReddit();
-r.get("/r/museum", makeFrontpage, defaultErrorCallback);
+	//r.getSubreddit("museum", makeFrontpage, defaultErrorCallback);
+
+	//r.getSubreddit("museum").after("null").sort("top").go(makeFrontpage, defaultErrorCallback);
+
+	r.subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);
+
 
 
 
