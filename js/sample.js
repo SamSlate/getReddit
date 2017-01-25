@@ -38,21 +38,29 @@ function getCommentPage(response) {
 	document.querySelector(".main").appendChild(cardBuilder(pageData));
 
 }
-getPage(commPageLink, getCommentPage, defaultErrorCallback);
+//getPage(commPageLink, getCommentPage, defaultErrorCallback);
 
 //frontpage of subreddit
-var subreddit = "OldSchoolCool";
-function getFrontpage(response) {
+function makeFrontpage(res) {
+	response = JSON.parse(res); 
 	if(verbose)  console.log("getFrontpage()", response);    
 	
 	var children = response.data.children;
 	for(var i in children)
 		document.querySelector(".main").appendChild(cardBuilder(children[i].data));
-	
 }
+//var subreddit = "OldSchoolCool";
 //getPage( "https://www.reddit.com/r/"+subreddit+"/.json", getFrontpage, defaultErrorCallback);
-getPage( "https://www.reddit.com/.json", getFrontpage, defaultErrorCallback);
-	
+//get("/", makeFrontpage, defaultErrorCallback);
+
+
+var r = new getReddit();
+r.get("/r/museum", makeFrontpage, defaultErrorCallback);
+
+
+
+
+
 
 
 
