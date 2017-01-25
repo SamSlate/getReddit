@@ -72,7 +72,7 @@ h2{
 }
 .card > p.auth{    
     text-align: right;
-    color: gray;
+    color: #00BCD4;
 }
 .card > p.sub{    
     color: #BDBDBD;

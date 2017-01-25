@@ -29,6 +29,7 @@ class getReddit{
 			this.getAuth(res, err);
 		else 
 			this.unAuth(res, err);
+		console.log(this);
 	}
 	//get oauth
 	getAuth(res, err){
@@ -60,13 +61,14 @@ class getReddit{
 
 	//make URI
 	buildUri(){
-		//if(verbose) console.log("buildUri()");		
-		if(this.dir.subreddit){
+		if(verbose) console.log("buildUri()");		
+		if(this.dir.subreddit){ //subreddit case
 			this.uri = '/r/'+this.dir.subreddit+'/';
-			if(this.comments) this.uri += 'comments/'+this.article+'/';
+			if(this.isComments) this.uri += 'comments/'+this.article+'/';
+			if(this.isDuplicates) this.uri += 'duplicates/'+this.article+'/';
 			if(this.uriParams.sort) this.uri += this.uriParams.sort+'/';
 		}
-		if(this.dir.user){
+		if(this.dir.user){ //user case
 			this.uri = '/user/'+this.dir.user+'/';
 			if(this.userSubmitted) this.uri += 'submitted/';
 		}
@@ -90,6 +92,7 @@ class getReddit{
 	count(s){  this.uriParams.count=s; return this; }
 	show(s){  this.uriParams.show=s; return this; }
 	sr_detail(s){  this.uriParams.sr_detail=s; return this; }
+
 //modhashes
 	//afaik these are obsolete
 
@@ -157,7 +160,7 @@ class getReddit{
 // /by_id/names
 // /comments/article
 	comments(article){ 
-		this.comments = true;
+		this.isComments = true;
 		this.article = article;
 		return this; 
 	}
@@ -169,7 +172,7 @@ class getReddit{
 	}
 // /duplicates/article
 	duplicates(article){ 
-		this.duplicates = true;
+		this.isDuplicates = true;
 		this.article = article;
 		return this; 
 	}
