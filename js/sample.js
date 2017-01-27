@@ -26,7 +26,6 @@ function cardBuilder(dataBall){
 		card.appendChild(elBuildo("p", ["class", "auth"], dataBall.author));
 	return card;
 }
-
 //get comment page
 var commPageLink = "https://www.reddit.com/r/OldSchoolCool/comments/5gpyts/rita_hayworth_1948/.json";
 function getCommentPage(response) {
@@ -36,23 +35,23 @@ function getCommentPage(response) {
 	var pageData = response[0].data.children[0].data;
 	document.querySelector(".main").appendChild(cardBuilder(pageData));
 }
-//getPage(commPageLink, getCommentPage, defaultErrorCallback);
-
 //frontpage of subreddit
 function makeFrontpage(res) {
 	response = JSON.parse(res);
 	if(verbose) console.log("getFrontpage()", response);
 	var children = response.data.children;
 	for(var i in children) document.querySelector(".main").appendChild(cardBuilder(children[i].data));
-	loadMore.onclick  = function(){  r.after(response.data.after).go(makeFrontpage, defaultErrorCallback); };
+	loadMore.onclick  = function(){  
+		r.after(response.data.after).go(makeFrontpage, defaultErrorCallback); 
+	};
 }
 function speak(x){
 	response = JSON.parse(x);
 	console.log(response);
 }
+
 //sub
-	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);
-	
+	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
 	var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').hot().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').rising().go(makeFrontpage, defaultErrorCallback);

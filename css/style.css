@@ -81,7 +81,7 @@ nav li{
     margin-right: 100px;
 }
 .card p{
-    color: #9E9E9E;
+    color: #757575;
     font-size: 20px;
     font-weight: 400;
     margin: 0;
@@ -92,6 +92,7 @@ nav li{
 .card > p.auth{    
     text-align: right;
     color: #00BCD4;
+    margin-right: 11px;
 }
 .card > p.sub{    
     color: #BDBDBD;
@@ -101,6 +102,7 @@ nav li{
 }
 .card > p.sub::before{
     content: '\00a0| ';
+    margin-left: -10px;
 }
 .card > .triangle{    
     width: 0px;
@@ -119,6 +121,6 @@ nav li{
     vertical-align: bottom;
 }
 .main{
-    max-width: 1200px;
+    max-width: 800px;
     margin: 50px auto;
 }
