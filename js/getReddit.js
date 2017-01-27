@@ -17,31 +17,24 @@ class getReddit{
 
 		//uri		
 		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
-		this.uriParams = {};
 		this.uri = '';
-
-		//user
-		/*
-		this.user = {
-			submitted: function(x) {
-				console.log(x);
-				console.log(this.that);
-				return this.that;
-			}
-			
-		};
-		*/
+		this.uriParams = {};
 	}
 
 	//get page (last call for all trains function)
 	go(res, err){
-		console.log(this);
-		this.buildUri();
+		//make URI
+		this.uri = '/';
+		for (var i = 0; i < this.dir.length; i++) this.uri += this.dir[i]+'/';
+		this.uri += '.json';
+		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
+
 		if(verbose) console.log("go()", this.uri);
 		if (localStorage.getItem("loggedIn") === true) 
 			this.getAuth(res, err);
 		else 
 			this.unAuth(res, err);
+		return this;
 	}
 	//get oauth
 	getAuth(res, err){
@@ -63,42 +56,6 @@ class getReddit{
 				}
 			};
 			xhr.send();
-	}
-	//get subreddit page
-	subreddit(subreddit){  
-		this.dir[0] = "r";
-		this.dir[1] = subreddit; 
-		return this; 
-	}	
-
-	//make URI
-	buildUri(){
-		if(verbose) console.log("buildUri()", this.dir);	
-
-		/*	
-		if(this.dir[0] == "r"){ //subreddit case
-			this.uri = '/r/'+this.dir[1]+'/';
-			if(this.dir[2] == "comments") this.uri += 'comments/'+this.article+'/';
-			if(this.dir[2] == "duplicates") this.uri += 'duplicates/'+this.article+'/';
-			if(this.uriParams.sort) this.uri += this.uriParams.sort+'/';
-		}
-		if(this.dir[0] == "user"){ //user case
-			this.uri = '/user/'+this.dir[1]+'/';
-			if(this.dir[2]) this.uri += this.dir[2]+'/';
-		}
-		*/
-
-		this.uri = '/';
-		for (var i = 0; i < this.dir.length; i++){
-			if(i==2 && this.dir[0]=='user') true; //do nothing, users don't have sort dir
-			
-			else this.uri += this.dir[i]+'/';
-		} 
-
-		//json cap
-		this.uri += '.json';
-		//sprinkle in parameters
-		for(var name in this.uriParams) { if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]) };
 	}
 
 /*
@@ -154,7 +111,6 @@ class getReddit{
 
 // links & comments
 // /api/comment
-
 // /api/del
 // /api/editusertext
 // /api/hide
@@ -181,70 +137,11 @@ class getReddit{
 
 // listings
 // /by_id/names
-// /comments/article
-	comments(article){ 
-		this.dir[0] = "r";
-		this.dir[2] = "comments";
-		this.dir[3] = article;
-
-		console.log(this);
-		var that = this;
-		var thisCallback = this.go;
-		
-		var sorting = {
-			sort: function(t){
-				that.uriParams.sort = t;
-				console.log(that);
-				return that;
-			},
-			go: that.go.bind(that)
-		}
-		return sorting;
-		//return this; 
+	by_id(fullname){ 
+		this.dir[0] = "by_id";
+		this.dir[1] = fullname;
+		return this;
 	}
-// /controversial
-	controversial(t){ 
-		this.dir[2] = "controversial";
-		this.uriParams.sort = 'controversial';
-		this.uriParams.t = t;
-		return this; 
-	}
-// /duplicates/article
-	duplicates(article){ 
-		this.dir[2] = "duplicates";
-		this.dir[3] = article;
-		return this; 
-	}
-// /hot
-	hot(){ 
-		this.dir[2] = "hot";
-		this.uriParams.sort = 'hot';
-		return this; 
-	}
-// /new
-	newest(){ //-_-
-		this.dir[2] = "new";
-		this.uriParams.sort = 'new';
-		return this; 
-	}
-// /random
-// /rising
-	rising(){ 
-		this.dir[2] = "rising";
-		this.uriParams.sort = 'rising';
-		return this; 
-	}
-// /top
-	top(t){ 
-		this.dir[2] = "top";
-		this.uriParams.sort = 'top';
-		this.uriParams.t = t;
-		return this; 
-	}
-// /sort
-	//MOOT, this function has been absorbed by .top() and .contriversal()
-	//sort(s){  this.uriParams.sort=s; return this; }
-	//t(s){  this.uriParams.t=s; return this; }
 
 // live threads
 // /api/live/by_id/names
@@ -332,9 +229,118 @@ class getReddit{
 // /api/multi/multipath/r/srname
 
 // search
+//advancedSearch()? /* this is so tied to the UI I don't know how to present it here in a way that's helpful... */
 // /search
+	search(searchBall){
+		this.uriParams = searchBall;
+		if(this.dir.length == 0 || this.dir[0] == "r") dir.push("search");
+		// if(this.dir[0] == "user" && dir[1]){
+		// 	this.uriParams.q += "author:"+dir[1];
+		// 	dir = ["search"]; //all other user functions are now fucked...
+		// }
+		var that = this;
+		return { //sorting
+			relevance: function(){ 
+				that.uriParams.sort = 'relevance'; 
+				return that;
+			},
+			top: function(t){
+				that.uriParams.sort = 'top';
+				that.uriParams.t = t;
+				return that;
+			},
+			newest: function(){ 
+				that.uriParams.sort = 'new'; 
+				return that;
+			},
+			comments: function(t){
+				that.uriParams.sort = 'comments';
+				that.uriParams.t = t;
+				return that;
+			},
+			go: that.go.bind(that)
+		}
+	}
 
 // subreddits
+	subreddit(subreddit){  
+		this.dir[0] = "r";
+		this.dir[1] = subreddit;
+
+		var that = this;
+		var sorting = {
+// /comments/article
+			comments: function(article){ 
+				that.dir[0] = "r";
+				that.dir[2] = "comments";
+				that.dir[3] = article;		
+				var sorting = {
+					sort: function(t){
+						if(t=="newest") t = "new";
+						that.uriParams.sort = t;
+						return that;
+					},
+					go: that.go.bind(that)
+				}
+				return sorting;
+			},
+// /duplicates/article
+			duplicates: function(article){ 
+				that.dir[2] = "duplicates";
+				that.dir[3] = article;
+				return that; 
+			},
+// /controversial
+			controversial: function(t){ 
+				that.dir[2] = "controversial";
+				that.uriParams.sort = 'controversial';
+				that.uriParams.t = t;
+				return that; 
+			},
+// /hot
+			hot: function(){ 
+				that.dir[2] = "hot";
+				that.uriParams.sort = 'hot';
+				return that; 
+			},
+// /new
+			newest: function(){ //-_-
+				that.dir[2] = "new";
+				that.uriParams.sort = 'new';
+				return that; 
+			},
+// /random
+		/*//CORS rejects Redirects.....
+			random: function(){
+				that.dir[1] = "random";
+				return that; 
+			},
+		*/
+// /rising
+			rising: function(){ 
+				that.dir[2] = "rising";
+				that.uriParams.sort = 'rising';
+				return that; 
+			},
+// /top
+			top: function(t){ 
+				that.dir[2] = "top";
+				that.uriParams.sort = 'top';
+				that.uriParams.t = t;
+				return that; 
+			},
+////gilded
+			gilded: function(){ 
+				that.dir[2] = "gilded";
+				return that; 
+			},
+////promoted
+			promoted: function(){ 
+				that.dir[2] = "ads";
+				return that; 
+			},
+			go: that.go.bind(that)
+		}
 // /about/banned
 // /about/contributors
 // /about/moderators
@@ -369,22 +375,35 @@ class getReddit{
 // /subreddits/popular
 // /subreddits/search
 // /subreddits/where
- 
-// users
+
+		return sorting; 
+	}
+// USER
 	user(user){
 		this.dir[0] = "user";
 		this.dir[1] = user;		
-
-		this.submitted = function(){
-			console.log(this);
-			return this;
+		var that = this;		
+		var sorting = {
+			hot: function(){ 
+				that.uriParams.sort = 'hot'; 
+				return that;
+			},
+			newest: function(){ 
+				that.uriParams.sort = 'new'; 
+				return that;
+			},
+			top: function(t){
+				that.uriParams.sort = 'top';
+				that.uriParams.t = t;
+				return that;
+			},
+			controversial: function(t){
+				that.uriParams.sort = 'controversial';
+				that.uriParams.t = t;
+				return that;
+			},
+			go: that.go.bind(that)
 		}
-
-		return this;
-	};	
-	
-//user
-
 
 // /api/friend
 // /api/setpermissions
@@ -393,28 +412,57 @@ class getReddit{
 // /api/v1/me/friends/username
 // /api/v1/user/username/trophies
 
+		var userOpts = {
 // /user/username/about
+		/* I can't find a singe users that returns an about page */
 // /user/username/comments
+			comments: function(t){
+				that.dir[2] = "comments";
+				return sorting;
+			},
 // /user/username/downvoted
+			downvoted: function(t){
+				that.dir[2] = "downvoted";
+				return sorting;
+			},
 // /user/username/gilded
+			gilded: function(t){
+				that.dir[2] = "gilded";
+				return that;
+			},
 // /user/username/hidden
+			hidden: function(t){
+				that.dir[2] = "hidden";
+				return sorting;
+			},
 // /user/username/overview
+			overview: function(){
+				that.dir[2] = "overview";
+				return sorting;
+			},
 // /user/username/saved
+			saved: function(t){
+				that.dir[2] = "saved";
+				return sorting;
+			},
 // /user/username/submitted
-
-
-/*
-	user.submitted = function(user){
-		console.log(this);
-		setUser(user, 'submitted');
-		return this;
-	};
-*/
+			submitted: function(t){
+				that.dir[2] = "submitted";
+				return sorting;
+			},
 // /user/username/upvoted
+			upvoted: function(t){
+				that.dir[2] = "upvoted";
+				return sorting;
+			},
 // /user/username/where
+		/* I have no idea what this is */
 
-		//return this.user();
-	//};
+			go: that.go.bind(that)
+		};
+
+		return userOpts;
+	};	
 
 // wiki
 // /api/wiki/alloweditor/add
@@ -602,5 +650,4 @@ class getReddit{
 			});
 		else alert("login to vote!");
 	}
-	//make comment
 }
