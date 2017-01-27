@@ -16,20 +16,32 @@ class getReddit{
 		this.loginUri =  'http://redditairplane.com/login/'; //where reddit drops users after authorizing your app
 
 		//uri		
-		this.dir = {}; //subredd/user
+		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
 		this.uriParams = {};
 		this.uri = '';
-	}	
+
+		//user
+		/*
+		this.user = {
+			submitted: function(x) {
+				console.log(x);
+				console.log(this.that);
+				return this.that;
+			}
+			
+		};
+		*/
+	}
 
 	//get page (last call for all trains function)
 	go(res, err){
+		console.log(this);
 		this.buildUri();
 		if(verbose) console.log("go()", this.uri);
 		if (localStorage.getItem("loggedIn") === true) 
 			this.getAuth(res, err);
 		else 
 			this.unAuth(res, err);
-		console.log(this);
 	}
 	//get oauth
 	getAuth(res, err){
@@ -53,25 +65,36 @@ class getReddit{
 			xhr.send();
 	}
 	//get subreddit page
-	subreddit(subreddit){ this.dir.subreddit = subreddit;  return this; }
-	
-	//get user page
-	user(user){ this.dir.user = user;  return this; }
-	userSubmitted(user){ this.user(user); this.userSubmitted = true;  return this; }
+	subreddit(subreddit){  
+		this.dir[0] = "r";
+		this.dir[1] = subreddit; 
+		return this; 
+	}	
 
 	//make URI
 	buildUri(){
-		if(verbose) console.log("buildUri()");		
-		if(this.dir.subreddit){ //subreddit case
-			this.uri = '/r/'+this.dir.subreddit+'/';
-			if(this.isComments) this.uri += 'comments/'+this.article+'/';
-			if(this.isDuplicates) this.uri += 'duplicates/'+this.article+'/';
+		if(verbose) console.log("buildUri()", this.dir);	
+
+		/*	
+		if(this.dir[0] == "r"){ //subreddit case
+			this.uri = '/r/'+this.dir[1]+'/';
+			if(this.dir[2] == "comments") this.uri += 'comments/'+this.article+'/';
+			if(this.dir[2] == "duplicates") this.uri += 'duplicates/'+this.article+'/';
 			if(this.uriParams.sort) this.uri += this.uriParams.sort+'/';
 		}
-		if(this.dir.user){ //user case
-			this.uri = '/user/'+this.dir.user+'/';
-			if(this.userSubmitted) this.uri += 'submitted/';
+		if(this.dir[0] == "user"){ //user case
+			this.uri = '/user/'+this.dir[1]+'/';
+			if(this.dir[2]) this.uri += this.dir[2]+'/';
 		}
+		*/
+
+		this.uri = '/';
+		for (var i = 0; i < this.dir.length; i++){
+			if(i==2 && this.dir[0]=='user') true; //do nothing, users don't have sort dir
+			
+			else this.uri += this.dir[i]+'/';
+		} 
+
 		//json cap
 		this.uri += '.json';
 		//sprinkle in parameters
@@ -160,46 +183,66 @@ class getReddit{
 // /by_id/names
 // /comments/article
 	comments(article){ 
-		this.isComments = true;
-		this.article = article;
-		return this; 
+		this.dir[0] = "r";
+		this.dir[2] = "comments";
+		this.dir[3] = article;
+
+		console.log(this);
+		var that = this;
+		var thisCallback = this.go;
+		
+		var sorting = {
+			sort: function(t){
+				that.uriParams.sort = t;
+				console.log(that);
+				return that;
+			},
+			go: that.go.bind(that)
+		}
+		return sorting;
+		//return this; 
 	}
 // /controversial
 	controversial(t){ 
+		this.dir[2] = "controversial";
 		this.uriParams.sort = 'controversial';
 		this.uriParams.t = t;
 		return this; 
 	}
 // /duplicates/article
 	duplicates(article){ 
-		this.isDuplicates = true;
-		this.article = article;
+		this.dir[2] = "duplicates";
+		this.dir[3] = article;
 		return this; 
 	}
 // /hot
 	hot(){ 
+		this.dir[2] = "hot";
 		this.uriParams.sort = 'hot';
 		return this; 
 	}
 // /new
 	newest(){ //-_-
+		this.dir[2] = "new";
 		this.uriParams.sort = 'new';
 		return this; 
 	}
 // /random
 // /rising
 	rising(){ 
+		this.dir[2] = "rising";
 		this.uriParams.sort = 'rising';
 		return this; 
 	}
 // /top
 	top(t){ 
+		this.dir[2] = "top";
 		this.uriParams.sort = 'top';
 		this.uriParams.t = t;
 		return this; 
 	}
 // /sort
-	//moot
+	//MOOT, this function has been absorbed by .top() and .contriversal()
 	//sort(s){  this.uriParams.sort=s; return this; }
 	//t(s){  this.uriParams.t=s; return this; }
 
@@ -326,14 +369,30 @@ class getReddit{
 // /subreddits/popular
 // /subreddits/search
 // /subreddits/where
-
+ 
 // users
+	user(user){
+		this.dir[0] = "user";
+		this.dir[1] = user;		
+
+		this.submitted = function(){
+			console.log(this);
+			return this;
+		}
+
+		return this;
+	};	
+	
+//user
+
+
 // /api/friend
 // /api/setpermissions
 // /api/unfriend
 // /api/username_available
 // /api/v1/me/friends/username
 // /api/v1/user/username/trophies
+
 // /user/username/about
 // /user/username/comments
 // /user/username/downvoted
@@ -342,8 +401,20 @@ class getReddit{
 // /user/username/overview
 // /user/username/saved
 // /user/username/submitted
+
+
+/*
+	user.submitted = function(user){
+		console.log(this);
+		setUser(user, 'submitted');
+		return this;
+	};
+*/
 // /user/username/upvoted
 // /user/username/where
+
+		//return this.user();
+	//};
 
 // wiki
 // /api/wiki/alloweditor/add
