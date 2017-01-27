@@ -479,6 +479,7 @@ class getReddit{
 // /wiki/page		
 
 
+
 	//login
 	login(code, state){
 		//(reddit will add code/state parameters to the URI) 

@@ -40,22 +40,20 @@ function getCommentPage(response) {
 
 //frontpage of subreddit
 function makeFrontpage(res) {
-	response = JSON.parse(res); 
-	if(verbose)  console.log("getFrontpage()", response);   
+	response = JSON.parse(res);
+	if(verbose) console.log("getFrontpage()", response);
 	var children = response.data.children;
 	for(var i in children) document.querySelector(".main").appendChild(cardBuilder(children[i].data));
-	loadMore.onclick  = function(){ 
-		r.after(response.data.after).go(makeFrontpage, defaultErrorCallback);
-	};
+	loadMore.onclick  = function(){  r.after(response.data.after).go(makeFrontpage, defaultErrorCallback); };
 }
 function speak(x){
-	response = JSON.parse(x); 
+	response = JSON.parse(x);
 	console.log(response);
 }
 //sub
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);
 	
-	// var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
+	var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').hot().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').rising().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').controversial().go(makeFrontpage, defaultErrorCallback);
@@ -65,7 +63,7 @@ function speak(x){
 	// var r = new getReddit().subreddit('museum').promoted().go(makeFrontpage, defaultErrorCallback);
 
 //by_id
-	var r = new getReddit().by_id('t3_5q0325').go(speak, defaultErrorCallback);
+	//var r = new getReddit().by_id('t3_5q0325').go(speak, defaultErrorCallback);
 
 //comments
 	// var r = new getReddit().subreddit('nsfw').comments("5pvuqm").go(speak, defaultErrorCallback);
