@@ -65,14 +65,14 @@ class getReddit{
 
 */
 
-//listings -> uri parameters (use HOT or TOP or NEWEST, etc)
+//listings -> uri parameters (typically follwoing HOT() or TOP() or NEWEST(), etc)
 	after(s){ this.uriParams.after=s; return this; }
 	before(s){  this.uriParams.before=s; return this; }
 	limit(s){  this.uriParams.limit=s; return this; }
 	count(s){  this.uriParams.count=s; return this; }
 	show(s){  this.uriParams.show=s; return this; }
 	sr_detail(s){  this.uriParams.sr_detail=s; return this; }
-	sort(s){  this.uriParams.sort=s; return this; } // sort	one of (relevance, activity)
+	sort(s){  this.uriParams.sort=s; return this; } // sort	one of relevance OR activity (/subreddits/search)
 
 //modhashes
 	//afaik these are obsolete
@@ -350,7 +350,7 @@ class getReddit{
 			// /about/wikicontributors
 			about: function(x){ 
 				that.dir[2] = "about";
-				if(x) that.dir.push(x); // /about/where
+				if(x) that.dir[3] = x; // /about/where
 				return that; 
 			},
 // /sidebar 
@@ -364,9 +364,28 @@ class getReddit{
 				console.log("sticky(): Will 404 if there is not currently a sticky post in this subreddit. -reddit.com"); //¯\_(ツ)_/¯ I can't find a example of this that works
 				return that; 
 			},
+// wiki
+// /api/wiki/alloweditor/add
+// /api/wiki/alloweditor/del
+// /api/wiki/alloweditor/act
+// /api/wiki/edit
+// /api/wiki/hide
+// /api/wiki/revert
+			// /wiki/pages
+			// /wiki/{page}
+			// /wiki/discussions/{page}
+			// /wiki/revisions
+			// /wiki/revisions/{page}
+			// /wiki/settings/{page}
+			wiki: function(x){ 
+				that.dir[2] = "wiki";
+				that.dir[3] = x?x:"pages";
+				return that; 
+			},
 			go: that.go.bind(that)
 		}
 // /r/subreddit/about/edit
+
 // /api/delete_sr_banner
 // /api/delete_sr_header
 // /api/delete_sr_icon
@@ -389,14 +408,14 @@ class getReddit{
 		// /subreddits/gold
 		// /subreddits/new
 		// /subreddits/popular
-		this.dir[1] = x; // /subreddits/where
+		this.dir[1] = x?x:popular; // /subreddits/where
 
 		// /subreddits/search	
 		var that = this;		
 		var search = {
 			search: function(q){
 				that.dir[1] = "search";
-				that.uriParams.q=q;
+				that.uriParams.q=q?q:"";
 				return that;
 			},
 			go: that.go.bind(that)
@@ -426,12 +445,12 @@ class getReddit{
 			},
 			top: function(t){
 				that.uriParams.sort = 'top';
-				that.uriParams.t = t;
+				that.uriParams.t = t?t:"all";
 				return that;
 			},
 			controversial: function(t){
 				that.uriParams.sort = 'controversial';
-				that.uriParams.t = t;
+				that.uriParams.t = t?t:"all";
 				return that;
 			},
 			go: that.go.bind(that)
@@ -448,22 +467,22 @@ class getReddit{
 // /user/username/about
 		/* I can't find a single users that returns an about page */
 // /user/username/comments
-			comments: function(t){
+			comments: function(){
 				that.dir[2] = "comments";
 				return sorting;
 			},
 // /user/username/downvoted
-			downvoted: function(t){
+			downvoted: function(){
 				that.dir[2] = "downvoted";
 				return sorting;
 			},
 // /user/username/gilded
-			gilded: function(t){
+			gilded: function(){
 				that.dir[2] = "gilded";
 				return that;
 			},
 // /user/username/hidden
-			hidden: function(t){
+			hidden: function(){
 				that.dir[2] = "hidden";
 				return sorting;
 			},
@@ -473,45 +492,27 @@ class getReddit{
 				return sorting;
 			},
 // /user/username/saved
-			saved: function(t){
+			saved: function(){
 				that.dir[2] = "saved";
 				return sorting;
 			},
 // /user/username/submitted
-			submitted: function(t){
+			submitted: function(){
 				that.dir[2] = "submitted";
 				return sorting;
 			},
 // /user/username/upvoted
-			upvoted: function(t){
+			upvoted: function(){
 				that.dir[2] = "upvoted";
 				return sorting;
 			},
-// /user/username/where
-		/* I have no idea what this is */
-
 			go: that.go.bind(that)
 		};
 
 		return userOpts;
 	};	
-
-// wiki
-// /api/wiki/alloweditor/add
-// /api/wiki/alloweditor/del
-// /api/wiki/alloweditor/act
-// /api/wiki/edit
-// /api/wiki/hide
-// /api/wiki/revert
-// /wiki/discussions/page
-// /wiki/pages
-// /wiki/revisions
-// /wiki/revisions/page
-// /wiki/settings/page
-// /wiki/page		
-
-
-
+	
+	
 	//login
 	login(code, state){
 		//(reddit will add code/state parameters to the URI) 

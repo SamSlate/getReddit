@@ -59,6 +59,12 @@ function speakSubreddits(res) {
 	// var r = new getReddit().subreddit('museum').top("all").go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').gilded().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').promoted().go(makeFrontpage, defaultErrorCallback);
+//WIKI
+	var r = new getReddit().subreddit('pcmasterrace').wiki().go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddit('pcmasterrace').wiki("pages").go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddit('pcmasterrace').wiki("servers").go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddit('pcmasterrace').wiki("revisions/servers").go(speak, defaultErrorCallback);
+	
 
 //Subreddit PERIPHERAL (about)
 	// var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
@@ -70,6 +76,7 @@ function speakSubreddits(res) {
 		// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
 		// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
 		// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
+
 
 //subreddits, a collection of subreddits
 		// /subreddits/default
