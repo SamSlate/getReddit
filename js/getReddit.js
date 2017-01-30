@@ -72,6 +72,7 @@ class getReddit{
 	count(s){  this.uriParams.count=s; return this; }
 	show(s){  this.uriParams.show=s; return this; }
 	sr_detail(s){  this.uriParams.sr_detail=s; return this; }
+	sort(s){  this.uriParams.sort=s; return this; } // sort	one of (relevance, activity)
 
 //modhashes
 	//afaik these are obsolete
@@ -338,16 +339,34 @@ class getReddit{
 			promoted: function(){ 
 				that.dir[2] = "ads";
 				return that; 
+			},		
+// /r/subreddit/about
+			// /about/rules
+			// /about/banned
+			// /about/contributors
+			// /about/moderators
+			// /about/muted
+			// /about/wikibanned
+			// /about/wikicontributors
+			about: function(x){ 
+				that.dir[2] = "about";
+				if(x) that.dir.push(x); // /about/where
+				return that; 
+			},
+// /sidebar 
+			sidebar: function(){ //IDK if this endpoint actually exists
+				that.dir[2] = "sidebar";
+				return that; 
+			},
+// /sticky
+			sticky: function(){ 
+				that.dir[2] = "sticky";
+				console.log("sticky(): Will 404 if there is not currently a sticky post in this subreddit. -reddit.com"); //¯\_(ツ)_/¯ I can't find a example of this that works
+				return that; 
 			},
 			go: that.go.bind(that)
 		}
-// /about/banned
-// /about/contributors
-// /about/moderators
-// /about/muted
-// /about/wikibanned
-// /about/wikicontributors
-// /about/where
+// /r/subreddit/about/edit
 // /api/delete_sr_banner
 // /api/delete_sr_header
 // /api/delete_sr_icon
@@ -360,24 +379,37 @@ class getReddit{
 // /api/subreddits_by_topic
 // /api/subscribe
 // /api/upload_sr_img
-// /r/subreddit/about
-// /r/subreddit/about/edit
-// /r/subreddit/about/rules
-// /sidebar
-// /sticky
-// /subreddits/default
-// /subreddits/gold
-// /subreddits/mine/contributor
-// /subreddits/mine/moderator
-// /subreddits/mine/subscriber
-// /subreddits/mine/where
-// /subreddits/new
-// /subreddits/popular
-// /subreddits/search
-// /subreddits/where
-
 		return sorting; 
 	}
+
+//SUBREDDITS
+	subreddits(x){
+		this.dir[0] = "subreddits";
+		// /subreddits/default
+		// /subreddits/gold
+		// /subreddits/new
+		// /subreddits/popular
+		this.dir[1] = x; // /subreddits/where
+
+		// /subreddits/search	
+		var that = this;		
+		var search = {
+			search: function(q){
+				that.dir[1] = "search";
+				that.uriParams.q=q;
+				return that;
+			},
+			go: that.go.bind(that)
+		}
+
+		// /subreddits/mine/contributor
+		// /subreddits/mine/moderator
+		// /subreddits/mine/subscriber
+		// /subreddits/mine/where
+
+		return search;
+	}
+
 // USER
 	user(user){
 		this.dir[0] = "user";

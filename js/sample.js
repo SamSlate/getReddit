@@ -40,11 +40,18 @@ function speak(x){
 	response = JSON.parse(x);
 	console.log(response);
 }
+function speakSubreddits(res) {
+	response = JSON.parse(res);
+	if(verbose) console.log("getFrontpage()", response);
+	var children = [];
+	for(var i in response.data.children) children.push(response.data.children[i].data.display_name);
+	console.log(children);
+}
 
 //TESTING
-//sub
+//subreddit
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
-	var r = new getReddit().subreddit('museum').hot().limit("5").count("5").go(makeFrontpage, defaultErrorCallback);
+	//var r = new getReddit().subreddit('museum').hot().limit("5").count("5").go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').hot().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').rising().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').controversial().go(makeFrontpage, defaultErrorCallback);
@@ -52,6 +59,36 @@ function speak(x){
 	// var r = new getReddit().subreddit('museum').top("all").go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').gilded().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').promoted().go(makeFrontpage, defaultErrorCallback);
+
+//Subreddit PERIPHERAL (about)
+	// var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
+	// 	r.subreddit('museum').about().go(speak, defaultErrorCallback);
+	// 	r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("moderators").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
+
+//subreddits, a collection of subreddits
+		// /subreddits/default
+		// /subreddits/gold
+		// /subreddits/new
+		// /subreddits/popular
+	// var r = new getReddit().subreddits('popular').go(speak, defaultErrorCallback);
+
+		// /subreddits/search
+	// var r = new getReddit().subreddits('popular').search("nsfw").go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits('popular').search("nsfw").sort("relevance").go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits('popular').search("nsfw").sort("activity").go(speakSubreddits, defaultErrorCallback);
+
+		// /subreddits/mine/contributor
+		// /subreddits/mine/moderator
+		// /subreddits/mine/subscriber
+		// /subreddits/mine/where
+	// var r = new getReddit().subreddits('mine/subscriber').go(speak, defaultErrorCallback);
+
 
 //by_id
 	//var r = new getReddit().by_id('t3_5q0325').go(speak, defaultErrorCallback);
