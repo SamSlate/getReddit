@@ -65,7 +65,7 @@ class getReddit{
 
 */
 
-//listings -> uri parameters
+//listings -> uri parameters (use HOT or TOP or NEWEST, etc)
 	after(s){ this.uriParams.after=s; return this; }
 	before(s){  this.uriParams.before=s; return this; }
 	limit(s){  this.uriParams.limit=s; return this; }
@@ -414,7 +414,7 @@ class getReddit{
 
 		var userOpts = {
 // /user/username/about
-		/* I can't find a singe users that returns an about page */
+		/* I can't find a single users that returns an about page */
 // /user/username/comments
 			comments: function(t){
 				that.dir[2] = "comments";

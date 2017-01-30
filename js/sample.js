@@ -18,22 +18,13 @@ function elBuildo(tag,a,text){
 function cardBuilder(dataBall){
 	var card = elBuildo("div", ["class", "card"], "");
 		var box = elBuildo("div", ["class", "box"], "");
-			box.appendChild(elBuildo("div", ["class", "content"], '<img class="thumbnail" src="'+((dataBall.thumbnail.indexOf(".jpg")>0)?dataBall.thumbnail:"")+'" alt="">'));
+			box.appendChild(elBuildo("div", ["class", "content"], '<a href="'+dataBall.url+'"><img class="thumbnail" src="'+((dataBall.thumbnail.indexOf(".jpg")>0)?dataBall.thumbnail:"")+'" alt=""></a>'));
 			box.appendChild(elBuildo("div", ["class", "info"], '<p>'+dataBall.title+'</p>'));
 		card.appendChild(box);
 		card.appendChild(elBuildo("div", ["class", "triangle"], ""));
 		card.appendChild(elBuildo("p", ["class", "sub"], dataBall.subreddit));
 		card.appendChild(elBuildo("p", ["class", "auth"], dataBall.author));
 	return card;
-}
-//get comment page
-var commPageLink = "https://www.reddit.com/r/OldSchoolCool/comments/5gpyts/rita_hayworth_1948/.json";
-function getCommentPage(response) {
-	if(verbose)  console.log("getCommentPage()", response);
-
-	//get the goods
-	var pageData = response[0].data.children[0].data;
-	document.querySelector(".main").appendChild(cardBuilder(pageData));
 }
 //frontpage of subreddit
 function makeFrontpage(res) {
@@ -50,9 +41,10 @@ function speak(x){
 	console.log(response);
 }
 
+//TESTING
 //sub
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
-	var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
+	var r = new getReddit().subreddit('museum').hot().limit("5").count("5").go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').hot().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').rising().go(makeFrontpage, defaultErrorCallback);
 	// var r = new getReddit().subreddit('museum').controversial().go(makeFrontpage, defaultErrorCallback);

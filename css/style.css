@@ -50,6 +50,9 @@ html{
 h1{
     color: #009688;
 }
+img{
+    vertical-align: middle;
+}
 h2{
     color: #009688;
     margin: 0;
