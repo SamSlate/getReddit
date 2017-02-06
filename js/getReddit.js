@@ -90,60 +90,60 @@ class getReddit{
 		//clear tokens (it's loginpage)
 		//localStorage.clear();
 
-//login code
-$.ajax({
-	type: "POST",
-	url: 'https://ssl.reddit.com/api/v1/access_token',
-	data: {
-		code: code,
-		client_id: client_id,
-		redirect_uri: uri,
-		state: state,
-		grant_type: 'authorization_code'
-	},
-	username: client_id,
-	crossDomain: true,
-	beforeSend: function(xhr){
-		xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
-	}
-}).done(function(data){
-	console.log("data", data);
-	localStorage["access_token"] = data.access_token;
-	localStorage["refresh_token"] = data.refresh_token;
-	localStorage["scope"] = data.scope;
+		//login code
+		$.ajax({
+			type: "POST",
+			url: 'https://ssl.reddit.com/api/v1/access_token',
+			data: {
+				code: code,
+				client_id: client_id,
+				redirect_uri: uri,
+				state: state,
+				grant_type: 'authorization_code'
+			},
+			username: client_id,
+			crossDomain: true,
+			beforeSend: function(xhr){
+				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
+			}
+		}).done(function(data){
+			console.log("data", data);
+			localStorage["access_token"] = data.access_token;
+			localStorage["refresh_token"] = data.refresh_token;
+			localStorage["scope"] = data.scope;
 
-	console.log("new access_token: "+localStorage.access_token);
-	console.log("new refresh_token: "+localStorage.refresh_token);
-	console.log("new scope: "+localStorage.scope);
+			console.log("new access_token: "+localStorage.access_token);
+			console.log("new refresh_token: "+localStorage.refresh_token);
+			console.log("new scope: "+localStorage.scope);
 
-});
-
-		
-			/*
-			//first loggin
-			 $.ajax({
-				url: "https://oauth.reddit.com/api/v1/me.json",
-				method: "GET",
-				dataType: "json",
-				timeout: 6000,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					console.log(response);
-					localStorage["user"] = response.name;
-					//window.location.replace(state);
-				},
-				error: function (response) {
-					console.log("initial loggin failed (me.json)", response);
-					}
-				});
-			*/
+		});
 
 		console.log(localStorage.token?localStorage.token:"no token");
 		console.log(localStorage.user?localStorage.user:"no user");
 
 	}
+		
+	/*
+	//first loggin
+		$.ajax({
+		url: "https://oauth.reddit.com/api/v1/me.json",
+		method: "GET",
+		dataType: "json",
+		timeout: 6000,
+		beforeSend: function (jqXHR) {
+			jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
+		},
+		success: function (response) {
+			console.log(response);
+			localStorage["user"] = response.name;
+			//window.location.replace(state);
+		},
+		error: function (response) {
+			console.log("initial loggin failed (me.json)", response);
+			}
+		});
+	*/
+
 	//////////////////////////////////////incomplete
 
 
