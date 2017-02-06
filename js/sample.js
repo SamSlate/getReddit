@@ -14,6 +14,35 @@ function elBuildo(tag,a,text){
 	node.innerHTML = text;
 	return node;
 }
+//query string object return
+function q(){
+	// This function is anonymous, is executed immediately and
+	// the return value is assigned to QueryString!
+	var query_string = {};
+	var query = window.location.search.substring(1);
+	var found = false;
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) {
+		var pair = vars[i].split("=");
+		if(pair[i] != ""){
+			// If first entry with this name
+			if (typeof query_string[pair[0]] === "undefined") {
+				query_string[pair[0]] = decodeURIComponent(pair[1]);
+			// If second entry with this name
+			} else if (typeof query_string[pair[0]] === "string"){
+				var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+				query_string[pair[0]] = arr;
+			// If third or later entry with this name
+			} else {
+				query_string[pair[0]].push(decodeURIComponent(pair[1]));
+			}
+			found = true;
+		}
+	}
+	//if(found) console.log("query_string: ", query_string);
+	//	else console.log("no query_string");
+	return query_string;
+}
 //card builder
 function cardBuilder(dataBall){
 	var card = elBuildo("div", ["class", "card"], "");
@@ -114,7 +143,7 @@ function speakSubreddits(res) {
 
 //user
 	// var r = new getReddit().user("GallowBoob").go(speak, defaultErrorCallback);
-	 var r = new getReddit().user("GallowBoob").after("null").go(speak, defaultErrorCallback);
+	// var r = new getReddit().user("GallowBoob").after("null").go(speak, defaultErrorCallback);
 	// var r = new getReddit().user("GallowBoob").overview().go(speak, defaultErrorCallback);
 	// var r = new getReddit().user("GallowBoob").overview().newest().go(speak, defaultErrorCallback);
 	// var r = new getReddit().user("GallowBoob").overview().top("all").go(speak, defaultErrorCallback);
@@ -136,23 +165,17 @@ function speakSubreddits(res) {
 
 	// var r = new getReddit().user("samSlate").downvoted().go(makeFrontpage, defaultErrorCallback);
 
+//API
+	var r = new getReddit();
+		loginLink.href = r.loginLink;
 
-//AUTHENTCATED API
+	//LOGIN
+	if(window.location.hash == "#login"){ //login Case
+		//console.log("q()", q());
+		r.login(q().code, q().state);
+	}
+	//var r = new getReddit().login("x","x");
 
-//LOGIN LINK: https://www.reddit.com/prefs/apps/
-//link to reddit authentication page with app ID's/requests/scope as paramaters. If users accept, they're redirected to the redirect uri you set when you registered your app. 
-var loginURI = { 
-    client_id: 'yYMefyDnpSKWhw', //your client_id here
-    response_type: "code", //code for first login, token for refresh
-    state:  "RANDOM_STRING", //https://github.com/reddit/reddit/wiki/OAuth2#authorization
-    redirect_uri: 'http://redditairplane.com/login/getRedditLoginURI.html', //YOUR redirect_uri here: https://www.reddit.com/prefs/apps/
-    scope: 'save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread',
-    duration: "permanent",
-};
-var loginURL = "https://www.reddit.com/api/v1/authorize"; 
-for(var opt in loginURI) if(loginURI[opt]) loginURL = addParam(loginURL, opt, loginURI[opt]); //build login string
 
-//set login link
-loginLink.href = loginURL;
-
-if(localStorage["access_token"]) console.log(localStorage["access_token"]);
+//me
+	//var r = new getReddit().me().go(speak, defaultErrorCallback);
