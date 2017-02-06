@@ -9,12 +9,7 @@ function addParam(uri, key, value) {
 }
 
 class getReddit{
-
 	constructor (){
-		//credentials
-		this.client_id = 'rnhyBqzYf3PTPA'; //https://www.reddit.com/prefs/apps
-		this.loginUri =  'http://redditairplane.com/login/'; //where reddit drops users after authorizing your app
-
 		//uri		
 		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
 		this.uri = '';
@@ -57,6 +52,91 @@ class getReddit{
 			};
 			xhr.send();
 	}
+	
+	//login
+	login(code, state){
+
+		//(reddit will add state parameters to the URI) 
+		if(verbose) console.log("code: "+code);
+		if(verbose) console.log("state: "+state);
+
+		//clear tokens (it's loginpage)
+		localStorage.clear();
+
+		var xhr = new XMLHttpRequest();
+			xhr.open("POST", 'https://ssl.reddit.com/api/v1/access_token', true);
+			xhr.onload = function(data){
+				if(verbose) console.log("data", data);
+				localStorage["access_token"] = data.access_token;
+				localStorage["refresh_token"] = data.refresh_token;
+				localStorage["scope"] = data.scope;
+			};
+			xhr.onerror = function () {
+				console.log(xhr.response);
+			};
+			xhr.send();
+	}
+
+	login1(code, state){
+		//(reddit will add state parameters to the URI) 
+		if(verbose) console.log("code: "+code);
+		if(verbose) console.log("state: "+state);
+
+		//clear tokens (it's loginpage)
+		localStorage.clear();
+		
+		//login code
+		$.ajax({
+			type: "POST",
+			url: 'https://ssl.reddit.com/api/v1/access_token',
+			data: {
+				code: code,
+				client_id: client_id,
+				redirect_uri: uri,
+				grant_type: 'authorization_code',
+				state: state
+			},
+			username: client_id,
+			crossDomain: true,
+			beforeSend: function(xhr){
+				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
+			}
+		}).done(function(data){
+			if(verbose) console.log("data", data);
+
+			localStorage["access_token"] = data.access_token;
+			localStorage["refresh_token"] = data.refresh_token;
+			localStorage["scope"] = data.scope;
+			
+			//first loggin
+			$.ajax({
+				url: "https://oauth.reddit.com/api/v1/me.json",
+				method: "GET",
+				dataType: "json",
+				timeout: 6000,
+				beforeSend: function (jqXHR) {
+					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
+				},
+				success: function (response) {
+					if(verbose) console.log('response');
+					if(verbose) console.log(response);
+					localStorage["user"] = response.name;
+					mainContent.getElementsByTagName("h1").innerHTML = "Success! Redirecting...";
+					window.location.replace(state);
+				},
+				error: function () {
+					if(verbose) console.log("initial loggin fialed (me.json), clearing tokens");
+					mainContent.getElementsByTagName("h1").innerHTML = "Error...";
+					//clear localStorage?
+					localStorage.clear();
+					alert("login failed: redirecting you to reddit login screen again");
+					window.location.replace("https://www.reddit.com/api/v1/authorize?client_id="+client_id+"&response_type=code&state="+state+"&redirect_uri=http://redditairplane.com/login/&scope=save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread&duration=permanent");
+				}
+			});
+		});
+
+		if(verbose) console.log(localStorage.token?localStorage.token:"no token");
+	}
 
 /*
 
@@ -65,7 +145,7 @@ class getReddit{
 
 */
 
-//listings -> uri parameters (typically follwoing HOT() or TOP() or NEWEST(), etc)
+//listings -> uri parameters
 	after(s){ this.uriParams.after=s; return this; }
 	before(s){  this.uriParams.before=s; return this; }
 	limit(s){  this.uriParams.limit=s; return this; }
@@ -230,8 +310,8 @@ class getReddit{
 // /api/multi/multipath/r/srname
 
 // search
-//advancedSearch()? /* this is so tied to the UI I don't know how to present it here in a way that's helpful... */
-// /search
+	//advancedSearch()? 
+	/* this is so tied to the UI I don't know how to present it here in a way that's helpful and not cumbersome... */
 	search(searchBall){
 		this.uriParams = searchBall;
 		if(this.dir.length == 0 || this.dir[0] == "r") dir.push("search");
@@ -259,6 +339,13 @@ class getReddit{
 				that.uriParams.t = t;
 				return that;
 			},
+		//listing options
+			after: that.after.bind(that),
+			before: that.before.bind(that),
+			count: that.count.bind(that),
+			show: that.show.bind(that),
+			sr_detail: that.sr_detail.bind(that),
+		//go
 			go: that.go.bind(that)
 		}
 	}
@@ -382,6 +469,13 @@ class getReddit{
 				that.dir[3] = x?x:"pages";
 				return that; 
 			},
+		//listing options
+			after: that.after.bind(that),
+			before: that.before.bind(that),
+			count: that.count.bind(that),
+			show: that.show.bind(that),
+			sr_detail: that.sr_detail.bind(that),
+		//go
 			go: that.go.bind(that)
 		}
 // /r/subreddit/about/edit
@@ -418,6 +512,13 @@ class getReddit{
 				that.uriParams.q=q?q:"";
 				return that;
 			},
+		//listing options
+			after: that.after.bind(that),
+			before: that.before.bind(that),
+			count: that.count.bind(that),
+			show: that.show.bind(that),
+			sr_detail: that.sr_detail.bind(that),
+		//go
 			go: that.go.bind(that)
 		}
 
@@ -453,6 +554,13 @@ class getReddit{
 				that.uriParams.t = t?t:"all";
 				return that;
 			},
+		//listing options
+			after: that.after.bind(that),
+			before: that.before.bind(that),
+			count: that.count.bind(that),
+			show: that.show.bind(that),
+			sr_detail: that.sr_detail.bind(that),
+		//go
 			go: that.go.bind(that)
 		}
 
@@ -506,6 +614,13 @@ class getReddit{
 				that.dir[2] = "upvoted";
 				return sorting;
 			},
+		//listing options
+			after: that.after.bind(that),
+			before: that.before.bind(that),
+			count: that.count.bind(that),
+			show: that.show.bind(that),
+			sr_detail: that.sr_detail.bind(that),
+		//go
 			go: that.go.bind(that)
 		};
 
@@ -514,7 +629,7 @@ class getReddit{
 	
 	
 	//login
-	login(code, state){
+	loginOLD(code, state){
 		//(reddit will add code/state parameters to the URI) 
 		if(verbose) console.log("code: "+code);
 		if(verbose) console.log("state: "+state);
