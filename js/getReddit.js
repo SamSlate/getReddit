@@ -10,15 +10,21 @@ function addParam(uri, key, value) {
 
 class getReddit{
 	constructor (){
-		//uri		
+	//uri		
 		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
 		this.uri = '';
 		this.uriParams = {};
+		this.noOauth = false;		
+		this.ajax = {
+			timeout: 6000,
+			beforeSend: function (jqXHR) { 
+				jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token); 
+			}
+		};
 
 	//Login/client data:
 		this.client_id = 'yYMefyDnpSKWhw'; //your client_id here
-		this.redirect_uri = encodeURIComponent('http://127.0.0.1:8000/#login'); //YOUR redirect_uri here: https://www.reddit.com/prefs/apps/
-		//link to reddit authentication page with app ID's/requests/scope as paramaters. If users accept, they're redirected to the redirect uri you set when you registered your app. 
+		this.redirect_uri = 'http://127.0.0.1:8000/?login=true'; //YOUR redirect_uri here: https://www.reddit.com/prefs/apps/
 		this.loginURI = { 
 			client_id: this.client_id,
 			response_type: "code", //code for first login, token for refresh
@@ -27,19 +33,10 @@ class getReddit{
 			duration: "permanent",
 			scope: 'save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread',
 		};
-
 		this.loginURL = "https://www.reddit.com/api/v1/authorize"; 
-			for(var opt in this.loginURI) if(this.loginURI[opt]) this.loginURL = addParam(this.loginURL, opt, this.loginURI[opt]); //build login string
-
-		//set login link
-		this.loginLink = this.loginURL;
-
-		//already logged in?
-		if(localStorage.getItem("access_token") != 'undefined') console.log(localStorage["access_token"]);
-		if(localStorage.getItem("refresh_token") != 'undefined') console.log(localStorage["refresh_token"]);
-		if(localStorage.getItem("scope") != 'undefined') console.log(localStorage["scope"]);
-		//console.log(localStorage.token?localStorage.token:"no token");
-
+			for(var opt in this.loginURI) if(this.loginURI[opt]) this.loginURL = addParam(this.loginURL, opt, this.loginURI[opt]); //build login string		
+		this.loginLink = this.loginURL; //set login link	
+		this.f = []; //functions
 	}
 
 	//get page (last call for all trains function)
@@ -47,22 +44,26 @@ class getReddit{
 		//make URI
 		this.uri = '/';
 		for (var i = 0; i < this.dir.length; i++) this.uri += this.dir[i]+'/';
-		this.uri += '.json';
-		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
 
-		if(verbose) console.log("go()", this.uri);
-		if (localStorage.getItem("loggedIn") === true) 
-			this.getAuth(res, err);
-		else 
-			this.unAuth(res, err);
+		//if(verbose) console.log("go()", this.uri);
+		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) this.getAuth(res, err);
+		else this.unAuth(res, err);
 		return this;
 	}
 	//get oauth
 	getAuth(res, err){
-		if(verbose)  console.log("getAuth()", this, localStorage.access_token);
+		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
+		var url = "https://oauth.reddit.com"+this.uri;
+		if(verbose)  console.log("getAuth()", url);				
+		this.ajax.url = url;
+		this.ajax.success = res;
+		this.ajax.error = err;
+		$.ajax(this.ajax);
 	}
 	//get unAuth
 	unAuth(res, err){
+		this.uri += '.json';
+		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
 		var url = "https://www.reddit.com"+this.uri;
 		if(verbose)  console.log("unAuth()", url);
 
@@ -80,15 +81,14 @@ class getReddit{
 	}
 	
 	//login
-
-	//////////////////////////////////////incomplete
-	login(code, state){
+	login(code, state, callback){
 		var client_id = this.client_id;
 		var uri = this.redirect_uri;
 		console.log("code: "+code, "state: "+state, "client_id: "+client_id, "uri: "+uri);
 
 		//clear tokens (it's loginpage)
-		//localStorage.clear();
+		console.log("localStorage.clear()");
+		localStorage.clear();
 
 		//login code
 		$.ajax({
@@ -106,46 +106,28 @@ class getReddit{
 			beforeSend: function(xhr){
 				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
 			}
-		}).done(function(data){
+		}).done(function(data, x, y){
 			console.log("data", data);
-			localStorage["access_token"] = data.access_token;
-			localStorage["refresh_token"] = data.refresh_token;
-			localStorage["scope"] = data.scope;
+			console.log("x", x);
+			console.log("y", y);
+			localStorage.setItem("access_token",  data.access_token);
+			localStorage.setItem("refresh_token",  data.refresh_token);
+			localStorage.setItem("scope",  data.scope);
+			localStorage.setItem("loggedIn", true);
 
 			console.log("new access_token: "+localStorage.access_token);
 			console.log("new refresh_token: "+localStorage.refresh_token);
 			console.log("new scope: "+localStorage.scope);
+			console.log("new loggedIn: "+localStorage.loggedIn);
 
+			callback(data);
 		});
 
-		console.log(localStorage.token?localStorage.token:"no token");
-		console.log(localStorage.user?localStorage.user:"no user");
+		console.log(localStorage.access_token?localStorage.access_token:"no access_token");
+		console.log(localStorage.refresh_token?localStorage.refresh_token:"no refresh_token");
+		console.log(localStorage.scope?localStorage.scope:"no scope");
 
 	}
-		
-	/*
-	//first loggin
-		$.ajax({
-		url: "https://oauth.reddit.com/api/v1/me.json",
-		method: "GET",
-		dataType: "json",
-		timeout: 6000,
-		beforeSend: function (jqXHR) {
-			jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-		},
-		success: function (response) {
-			console.log(response);
-			localStorage["user"] = response.name;
-			//window.location.replace(state);
-		},
-		error: function (response) {
-			console.log("initial loggin failed (me.json)", response);
-			}
-		});
-	*/
-
-	//////////////////////////////////////incomplete
-
 
 /*
 
@@ -166,97 +148,31 @@ class getReddit{
 //modhashes
 	//afaik these are obsolete
 
-// account
 //API
-//refresh_token
- refresh_token(callback){
-	if(!localStorage.refresh_token){
-		callback(false);
-		console.log("!refresh_token, are you logged in?");
-		return;
-	}
-
-	if(verbose) console.log("refreshToken()\n  token: "+localStorage.refresh_token);
-	jsonData = "error";
-
-	//refresh token
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: 'https://ssl.reddit.com/api/v1/access_token',
-		data: {
-			client_id: 'cZEjE0RQEbXcHQ',
-			grant_type: 'refresh_token',
-			refresh_token: localStorage.refresh_token,
-			//scope: 'identity,mysubreddits,read,vote,history,report,subscribe',
-			scope: localStorage.scope,
-			state: '2xew',
-			duration: 'permanent',
-			redirect_uri: 'http://redditairplane.com/login/',
-		},
-		username: 'cZEjE0RQEbXcHQ',
-		crossDomain: true,
-		beforeSend: function(xhr){
-			xhr.setRequestHeader('Authorization', 'Basic ' + btoa('cZEjE0RQEbXcHQ' + ":" + ''));
-		},
-		success: function (reply) {
-			if(q.beta == 'debug') console.log("  token refreshed!");
-			if(q.beta == 'debug') console.log(reply);
-
-			localStorage["access_token"] = reply.access_token;
-			if(q.beta == 'debug') console.log("  new access_token: "+localStorage.access_token);
-
-			loadingStatus.innerHTML = "";
-			callback(true);
-		},
-		error: function (request) {
-			//if(q.beta == 'debug') console.log("was error, clearing token");
-			if(q.beta == 'debug') console.log("  Refresh Token has failed");
-			reportError("Token", request);
-			//fail quitely.
-			//alert("Refresh Token failed...");
-			console.log("  log out message: "+request.responseText);
-			//alert("log out message: "+request.responseText);
-			//localStorage.clear();
-			loadingStatus.innerHTML = "";
-			callback(false);
-		}
-	});
-}
+// account
 // /api/v1/me
-	me(){ 
-		//first loggin
-		$.ajax({
-			url: "https://oauth.reddit.com/api/v1/me.json",
-			method: "GET",
-			dataType: "json",
-			timeout: 6000,
-			beforeSend: function (jqXHR) {
-				jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-			},
-			success: function (response) {
-				if(verbose) console.log('response');
-				if(verbose) console.log(response);
-				localStorage["user"] = response.name;
-			},
-			error: function (response) {
-				if(verbose) console.log("initial loggin fialed (me.json)", response);
-				//clear localStorage?
-				//localStorage.clear();
-			}
-		});
-		return this; 
+	me(x){	
+		this.dir = ["api","v1", "me"];
+	// /api/v1/me/blocked
+	// /api/v1/me/friends
+	// /api/v1/me/karma
+	// /api/v1/me/prefs
+	// /api/v1/me/trophies
+		if(x) this.dir.push(x);		
+		this.ajax.method = "GET";	
+		return this;
 	}
-// /api/v1/me/blocked
-// /api/v1/me/friends
-// /api/v1/me/karma
-// /api/v1/me/prefs
-// /api/v1/me/trophies
-// /prefs/blocked
-// /prefs/friends
-// /prefs/messaging
-// /prefs/trusted
-// /prefs/where
+	prefs(x){
+		this.dir = ["prefs"];
+	// /prefs/blocked
+	// /prefs/friends
+	// /prefs/messaging
+	// /prefs/trusted
+	// /prefs/where
+		if(x) this.dir.push(x);			
+		this.ajax.method = "GET";
+		return this;
+	}
 
 // captcha
 // /api/needs_captcha
@@ -280,29 +196,149 @@ class getReddit{
 
 // links & comments
 // /api/comment
+	comment(parent, txt){
+		this.dir = ["api","comment"];
+		this.ajax.method =  "POST";
+		this.ajax.data = { api_type: "json", text: txt, thing_id: parent };
+		this.ajax.async=  true;
+		return this;
+	}
 // /api/del
+	delete(name){
+		this.dir = ["api","del"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/editusertext
+	editusertext(parent, txt){
+		this.comment(parent, txt);
+		this.dir = ["api","editusertext"];
+		return this;
+	}
 // /api/hide
+	hide(name){
+		this.dir = ["api","hide"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
+// /api/unhide
+	unhide(name){
+		this.dir = ["api","unhide"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/info
+	info(name){
+		this.dir = ["api","info"];
+		this.ajax.method = "GET";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/lock
+	lock(name){
+		this.dir = ["api","lock"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
+// /api/unlock
+	unlock(name){
+		this.dir = ["api","unlock"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/marknsfw
+	marknsfw(name){
+		this.dir = ["api","marknsfw"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
+// /api/unmarknsfw
+	unmarknsfw(name){
+		this.dir = ["api","unmarknsfw"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/morechildren
 // /api/report
 // /api/save
+	save(name, categoryName){
+		this.dir = ["api","save"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, category: categoryName, modhash: "null" };
+		return this;
+	}
+// /api/unsave
+	unsave(name, categoryName){
+		this.dir = ["api","unsave"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, category: categoryName, modhash: "null" };
+		return this;
+	}
 // /api/saved_categories
+	saved_categories(){
+		this.dir = ["api","saved_categories"];
+		this.ajax.method = "GET";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/sendreplies
+	sendreplies(name, state){
+		this.dir = ["api","sendreplies"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, state: state, modhash: "null" };
+		return this;
+	}
 // /api/set_contest_mode
+	set_contest_mode(name, state){
+		this.dir = ["api","set_contest_mode"];
+		this.ajax.method = "POST";
+		this.ajax.data = { api_type: "json", id: name, state: state, modhash: "null" };
+		return this;
+	}
 // /api/set_subreddit_sticky
+	set_subreddit_sticky(name, state, num){
+		this.dir = ["api","set_contest_mode"];
+		this.ajax.method = "POST";
+		this.ajax.data = { api_type: "json", num: num, id: name, state: state, modhash: "null" };
+		return this;
+	}
 // /api/set_suggested_sort
+	set_suggested_sort(name, sort){
+		this.dir = ["api","set_suggested_sort"];
+		this.ajax.method = "POST";
+		this.ajax.data = { api_type: "json", sort: sort, id: name, modhash: "null" };
+		return this;
+	}
 // /api/spoiler
+	spoiler(name){
+		this.dir = ["api","spoiler"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
+// /api/unspoiler
+	unspoiler(name){
+		this.dir = ["api","unspoiler"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, modhash: "null" };
+		return this;
+	}
 // /api/store_visits
 // /api/submit
-// /api/unhide
-// /api/unlock
-// /api/unmarknsfw
-// /api/unsave
-// /api/unspoiler
 // /api/vote
+	vote(name, dir, rank){
+		this.dir = ["api","vote"];
+		this.ajax.method = "POST";
+		this.ajax.data = { id: name, dir: dir, rank: rank, modhash: "null" };
+		return this;
+	}
 
 // listings
 // /by_id/names
@@ -405,7 +441,7 @@ class getReddit{
 		if(this.dir.length == 0 || this.dir[0] == "r") dir.push("search");
 		// if(this.dir[0] == "user" && dir[1]){
 		// 	this.uriParams.q += "author:"+dir[1];
-		// 	dir = ["search"]; //all other user functions are now fucked...
+		// 	dir = ["search"]; //all other user page functions are now fucked...
 		// }
 		var that = this;
 		return { //sorting
@@ -438,7 +474,7 @@ class getReddit{
 		}
 	}
 
-// subreddits
+// subreddit
 	subreddit(subreddit){  
 		this.dir[0] = "r";
 		this.dir[1] = subreddit;
@@ -585,37 +621,37 @@ class getReddit{
 
 //SUBREDDITS
 	subreddits(x){
-		this.dir[0] = "subreddits";
-		// /subreddits/default
-		// /subreddits/gold
-		// /subreddits/new
-		// /subreddits/popular
-		this.dir[1] = x?x:popular; // /subreddits/where
-
-		// /subreddits/search	
+		this.dir[0] = "subreddits"; 
 		var that = this;		
-		var search = {
-			search: function(q){
+		var opts = {
+			search: function(q){ // /subreddits/search
 				that.dir[1] = "search";
 				that.uriParams.q=q?q:"";
 				return that;
 			},
-		//listing options
-			after: that.after.bind(that),
-			before: that.before.bind(that),
-			count: that.count.bind(that),
-			show: that.show.bind(that),
-			sr_detail: that.sr_detail.bind(that),
-		//go
-			go: that.go.bind(that)
+			where: function(q){ // /subreddits/where
+			// /subreddits/default
+			// /subreddits/gold
+			// /subreddits/new
+			// /subreddits/popular
+				that.noOauth = true; //oauth 401's
+				that.dir.push(q);
+				return that;
+			},
+			mine: function(q){ // /subreddits/mine/where
+				// /subreddits/mine/contributor
+				// /subreddits/mine/moderator
+				// /subreddits/mine/subscriber
+				that.dir.push("mine");
+				that.dir.push(q);
+				that.ajax.method = "GET";
+				that.ajax.dataType = "json";
+				return that;
+			},
+			go: that.go.bind(that) //go
 		}
-
-		// /subreddits/mine/contributor
-		// /subreddits/mine/moderator
-		// /subreddits/mine/subscriber
-		// /subreddits/mine/where
-
-		return search;
+		if(x) return opts.where(x);		
+		return opts;
 	}
 
 // USER
@@ -714,242 +750,6 @@ class getReddit{
 
 		return userOpts;
 	};	
-	
-	
-	//login
-	loginOLD(code, state){
-		//(reddit will add code/state parameters to the URI) 
-		if(verbose) console.log("code: "+code);
-		if(verbose) console.log("state: "+state);
-
-		//clear tokens (it's loginpage)
-		localStorage.clear();
-		
-		//login code
-		$.ajax({
-			type: "POST",
-			url: 'https://ssl.reddit.com/api/v1/access_token',
-			data: {
-				code: code,
-				client_id: client_id,
-				redirect_uri: uri,
-				grant_type: 'authorization_code',
-				state: state
-			},
-			username: client_id,
-			crossDomain: true,
-			beforeSend: function(xhr){
-				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
-			}
-		}).done(function(data){
-			if(verbose) console.log("data", data);
-
-			localStorage["access_token"] = data.access_token;
-			localStorage["refresh_token"] = data.refresh_token;
-			localStorage["scope"] = data.scope;
-			
-			//first loggin
-			$.ajax({
-				url: "https://oauth.reddit.com/api/v1/me.json",
-				method: "GET",
-				dataType: "json",
-				timeout: 6000,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					if(verbose) console.log('response');
-					if(verbose) console.log(response);
-					localStorage["user"] = response.name;
-					mainContent.getElementsByTagName("h1").innerHTML = "Success! Redirecting...";
-					window.location.replace(state);
-				},
-				error: function () {
-					if(verbose) console.log("initial loggin fialed (me.json), clearing tokens");
-					mainContent.getElementsByTagName("h1").innerHTML = "Error...";
-					//clear localStorage?
-					localStorage.clear();
-					alert("login failed: redirecting you to reddit login screen again");
-					window.location.replace("https://www.reddit.com/api/v1/authorize?client_id=cZEjE0RQEbXcHQ&response_type=code&state="+state+"&redirect_uri=http://redditairplane.com/login/&scope=save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread&duration=permanent");
-				}
-			});
-		});
-
-		if(verbose) console.log(localStorage.token?localStorage.token:"no token");
-	}
-	//getSubscriptions
-	getSubscriptions(){
-		if(verbose) console.log("getSubscriptions()");
-		get("https://oauth.reddit.com/api/subreddits/mine/subscriber", "GET", "JSON", 
-			function (response) {
-				if(verbose)  console.log('getSubscriptions success!', response);
-				return response;
-			},
-			function (request) {
-				if(verbose) console.log("getSubscriptions request failed!", request);
-				return request;
-			}
-		);
-	}
-	//subscribe
-	subscribe(name, act, sub, callback){
-		if(verbose) console.log("subscribe()",name, act, sub, callback);
-		//toggle save
-		if(localStorage.access_token)
-			$.ajax({
-				url: "https://oauth.reddit.com/api/subscribe",
-				method: "POST",
-				data: {modhash: "null", action: act, sr: sub},
-				timeout: 6000,
-				async: true,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					if(verbose) console.log(act + 'scribed to ' +sub+ ' ('+name+')');
-					if(verbose) console.log(response);
-					callback(true); //callback success
-				},
-				error: function (response) {
-					console.log("failed to " + act + 'scribe from ' + sub + ' ('+name+')');
-					alert("failed to " + act + 'scribe from '+name);
-					if(verbose) console.log(response);
-					callback(false);
-				}
-			});
-		else alert("login to subscribe!");
-	}
-	//toggle favorite/save
-	toggleFav(child,card,i,callback){
-
-		//toggle save
-		if(localStorage.access_token)
-			$.ajax({
-				url: "https://oauth.reddit.com/api/"+(child.saved?"unsave":"save"),
-				method: "POST",
-				data: {id: child.name},
-				timeout: 6000,
-				async: true,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					if(verbose) console.log('save toggle success! saved: '+!child.saved);
-					if(verbose) console.log(response);
-
-					child.saved = !child.saved;
-					callback(child,card,i);
-					//toggle class
-					//el.className = ("fButton "+(faved?"fav":"faved"));
-				},
-				error: function (response) {
-					console.log('save toggle failed!');
-					console.log(response);
-				}
-			});
-	}
-	//vote
-	vote(name, vote, callback){
-		if(localStorage.access_token)
-			$.ajax({
-				url: "https://oauth.reddit.com/api/vote",
-				method: "POST",
-				data: {id: name, dir: vote},
-				timeout: 6000,
-				async: true,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					if(verbose) console.log('vote success! ',name);
-					if(verbose) console.log(response);
-					//callback success
-					callback(true);
-
-				},
-				error: function (response) {
-					if(verbose) console.log('vote failed!');
-					if(verbose) console.log(response);
-					if(response.status == 401){
-						alert("error 401: Unauthorized -Token Might have Expired\nrefreshing token and trying again...");
-						refreshToken(function(successfulRefresh){
-							if(verbose) console.log(" refresh success: "+successfulRefresh);
-							vote(name, vote, callback);
-						});
-					}
-					else if(response.status == 400)
-						alert("Error: Votes Closed (Old Thread)");
-					else{
-						alert(" Vote Failed: error "+response.status+"\nWait 10 seconds and try again, or refresh the page");
-						callback(false);
-					}
-				}
-			});
-		else alert("login to vote!");
-	}
-
-
-
-	login1(code, state){
-		//(reddit will add state parameters to the URI) 
-		if(verbose) console.log("code: "+code);
-		if(verbose) console.log("state: "+state);
-
-		//clear tokens (it's loginpage)
-		localStorage.clear();
-		
-		//login code
-		$.ajax({
-			type: "POST",
-			url: 'https://ssl.reddit.com/api/v1/access_token',
-			data: {
-				code: code,
-				client_id: client_id,
-				redirect_uri: uri,
-				grant_type: 'authorization_code',
-				state: state
-			},
-			username: client_id,
-			crossDomain: true,
-			beforeSend: function(xhr){
-				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
-			}
-		}).done(function(data){
-			if(verbose) console.log("data", data);
-
-			localStorage["access_token"] = data.access_token;
-			localStorage["refresh_token"] = data.refresh_token;
-			localStorage["scope"] = data.scope;
-			
-			//first loggin
-			$.ajax({
-				url: "https://oauth.reddit.com/api/v1/me.json",
-				method: "GET",
-				dataType: "json",
-				timeout: 6000,
-				beforeSend: function (jqXHR) {
-					jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token);
-				},
-				success: function (response) {
-					if(verbose) console.log('response');
-					if(verbose) console.log(response);
-					localStorage["user"] = response.name;
-					mainContent.getElementsByTagName("h1").innerHTML = "Success! Redirecting...";
-					window.location.replace(state);
-				},
-				error: function () {
-					if(verbose) console.log("initial loggin fialed (me.json), clearing tokens");
-					mainContent.getElementsByTagName("h1").innerHTML = "Error...";
-					//clear localStorage?
-					localStorage.clear();
-					alert("login failed: redirecting you to reddit login screen again");
-					window.location.replace("https://www.reddit.com/api/v1/authorize?client_id="+client_id+"&response_type=code&state="+state+"&redirect_uri=http://redditairplane.com/login/&scope=save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread&duration=permanent");
-				}
-			});
-		});
-
-		if(verbose) console.log(localStorage.token?localStorage.token:"no token");
-	}
 }
 
 

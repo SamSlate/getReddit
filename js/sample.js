@@ -3,7 +3,7 @@ if(verbose) console.log("Begin");
 
 //default error handler
 function defaultErrorCallback(x){
-	if(verbose) console.log("i am the default error callback.");    
+	if(verbose) console.log("i am the default error callback:", x.responseText);    
 	console.log(x);
 }
 //element builder
@@ -66,7 +66,7 @@ function makeFrontpage(res) {
 	};
 }
 function speak(x){
-	response = JSON.parse(x);
+	response = (typeof x !== 'object')?JSON.parse(x):x;
 	console.log(response);
 }
 function speakSubreddits(res) {
@@ -97,40 +97,39 @@ function speakSubreddits(res) {
 
 //Subreddit PERIPHERAL (about)
 	// var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
-	// 	r.subreddit('museum').about().go(speak, defaultErrorCallback);
-	// 	r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("moderators").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
-		// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about().go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("moderators").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
+	// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
 			
 
 //subreddits, a collection of subreddits
-		// /subreddits/default
-		// /subreddits/gold
-		// /subreddits/new
-		// /subreddits/popular
-	// var r = new getReddit().subreddits('popular').go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddits().where('default').go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits().where('gold').go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits().where('new').go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits().where('popular').go(speakSubreddits, defaultErrorCallback);
+	// var r = new getReddit().subreddits('default').go(speakSubreddits, defaultErrorCallback); //subreddits(x) == subreddits().where(x)
+		
+//mine		
+	// var r = new getReddit().subreddits().mine('contributor').go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddits().mine('moderator').go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddits().mine('subscriber').go(function(data){
+	// 	speak(data);
+	// 	r.after(data.data.after).go(speak, defaultErrorCallback);
+	// }, defaultErrorCallback);
 
-		// /subreddits/search
-	// var r = new getReddit().subreddits('popular').search("nsfw").go(speakSubreddits, defaultErrorCallback);
-	// var r = new getReddit().subreddits('popular').search("nsfw").sort("relevance").go(speakSubreddits, defaultErrorCallback);
-	// var r = new getReddit().subreddits('popular').search("nsfw").sort("activity").go(speakSubreddits, defaultErrorCallback);
-
-		// /subreddits/mine/contributor
-		// /subreddits/mine/moderator
-		// /subreddits/mine/subscriber
-		// /subreddits/mine/where
-	// var r = new getReddit().subreddits('mine/subscriber').go(speak, defaultErrorCallback);
-
+// /subreddits/search
+	// var r = new getReddit().subreddits().search('nsfw').go(speak, defaultErrorCallback);
 
 //by_id
 	//var r = new getReddit().by_id('t3_5q0325').go(speak, defaultErrorCallback);
 
 //comments
-	// var r = new getReddit().subreddit('nsfw').comments("5pvuqm").go(speak, defaultErrorCallback);
+	// var r = new getReddit().subreddit('BlackPeopleTwitter').comments("5shdde").go(speak, defaultErrorCallback);
 	// var r = new getReddit().subreddit('nsfw').comments("5pvuqm").sort("best").go(speak, defaultErrorCallback);
 	// var r = new getReddit().subreddit('nsfw').comments("5pvuqm").sort("top").go(speak, defaultErrorCallback);
 	// var r = new getReddit().subreddit('nsfw').comments("5pvuqm").sort("new").go(speak, defaultErrorCallback);
@@ -165,17 +164,69 @@ function speakSubreddits(res) {
 
 	// var r = new getReddit().user("samSlate").downvoted().go(makeFrontpage, defaultErrorCallback);
 
-//API
-	var r = new getReddit();
-		loginLink.href = r.loginLink;
+//Login Link
+	loginLink.href = new getReddit().loginLink;
 
-	//LOGIN
-	if(window.location.hash == "#login"){ //login Case
-		//console.log("q()", q());
-		r.login(q().code, q().state);
+//LOGIN
+	if(q().login == "true"){ //login Case
+		//login(code, state, callback)
+		new getReddit().login(q().code, q().state, function(data){ 
+			//do stuff, redirect to homepage probably... 
+			window.location.replace("/");
+		});
 	}
-	//var r = new getReddit().login("x","x");
-
 
 //me
-	//var r = new getReddit().me().go(speak, defaultErrorCallback);
+	// var r = new getReddit().me().go(speak, defaultErrorCallback);
+	// r.me().go(
+	// 	function(response){
+	// 		if(verbose) console.log(response);
+	// 		localStorage["user"] = response;
+	// 	}, 
+	// 	defaultErrorCallback
+	// );
+	// r.me("blocked").go(speak, defaultErrorCallback);
+	// r.me("friends").go(speak, defaultErrorCallback);
+	// r.me("karma").go(speak, defaultErrorCallback);
+	// r.me("prefs").go(speak, defaultErrorCallback);
+	// r.me("trophies").go(speak, defaultErrorCallback);
+
+//prefs
+	// var r = new getReddit();
+	// 	r.prefs("blocked").go(speak, defaultErrorCallback);
+	// 	r.prefs("friends").go(speak, defaultErrorCallback);
+	// 	r.prefs("messaging").go(speak, defaultErrorCallback);
+	// 	r.prefs("trusted").go(speak, defaultErrorCallback);
+
+//commenting
+	// new getReddit().comment("t3_52c1hu", "Comment Body").go(speak, defaultErrorCallback); //fullname of parent (comment or post), "comment text"
+//delete
+	// new getReddit().delete("t1_ddfe69e").go(speak, defaultErrorCallback); 
+//editusertext
+	//  new getReddit().editusertext("t1_ddfe3qa", "edited comment").go(speak, defaultErrorCallback);
+//hide
+	// new getReddit().hide("t3_52c1hu").go(speak, defaultErrorCallback);
+//unhide
+	// new getReddit().unhide("t3_52c1hu").go(speak, defaultErrorCallback);
+//info
+	// new getReddit().info("t3_5shdde").go(speak, defaultErrorCallback);
+//lock
+	// new getReddit().lock("t3_52c1hu").go(speak, defaultErrorCallback);
+//unlock
+	// new getReddit().unlock("t3_52c1hu").go(speak, defaultErrorCallback);
+//save
+	//  new getReddit().save("t3_52c1hu").go(speak, defaultErrorCallback);
+	//  new getReddit().save("t3_52c1hu", "space").go(speak, defaultErrorCallback); //save(name, category)
+//saved_categories
+	// new getReddit().saved_categories().go(speak, defaultErrorCallback); //https://www.reddit.com/user/USER_NAME/saved/CATEGORY/
+//sendreplies
+	// new getReddit().sendreplies("t3_52c1hu", true).go(speak, defaultErrorCallback); //toggle repliese for post/comment
+//vote
+	// new getReddit().vote("t3_52c1hu", 1, 2).go(speak, defaultErrorCallback); //toggle repliese for post/comment
+
+
+
+
+
+
+ 
