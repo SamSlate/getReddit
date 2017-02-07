@@ -47,8 +47,8 @@ function q(){
 function cardBuilder(dataBall){
 	var card = elBuildo("div", ["class", "card"], "");
 		var box = elBuildo("div", ["class", "box"], "");
-			box.appendChild(elBuildo("div", ["class", "content"], '<a href="'+dataBall.url+'"><img class="thumbnail" src="'+((dataBall.thumbnail.indexOf(".jpg")>0)?dataBall.thumbnail:"")+'" alt=""></a>'));
 			box.appendChild(elBuildo("div", ["class", "info"], '<p>'+dataBall.title+'</p>'));
+			box.appendChild(elBuildo("div", ["class", "content"], '<a href="'+dataBall.url+'"><img class="thumbnail" src="'+((dataBall.thumbnail.indexOf(".jpg")>0)?dataBall.thumbnail:"")+'" alt=""></a>'));
 		card.appendChild(box);
 		card.appendChild(elBuildo("div", ["class", "triangle"], ""));
 		card.appendChild(elBuildo("p", ["class", "sub"], dataBall.subreddit));
@@ -57,7 +57,7 @@ function cardBuilder(dataBall){
 }
 //frontpage of subreddit
 function makeFrontpage(res) {
-	response = JSON.parse(res);
+	response = (typeof res !== 'object')?JSON.parse(res):res;
 	if(verbose) console.log("getFrontpage()", response);
 	var children = response.data.children;
 	for(var i in children) document.querySelector(".main").appendChild(cardBuilder(children[i].data));
@@ -169,27 +169,29 @@ function speakSubreddits(res) {
 
 //LOGIN
 	if(q().login == "true"){ //login Case
-		//login(code, state, callback)
-		new getReddit().login(q().code, q().state, function(data){ 
+		new getReddit().login(q().code, q().state, function(data){ //login(code, state, callback)
 			//do stuff, redirect to homepage probably... 
 			window.location.replace("/");
 		});
 	}
 
+//frontpage
+	var r = new getReddit().go(makeFrontpage, defaultErrorCallback);
+
 //me
-	// var r = new getReddit().me().go(speak, defaultErrorCallback);
-	// r.me().go(
+	// new getReddit().me().go(
 	// 	function(response){
 	// 		if(verbose) console.log(response);
 	// 		localStorage["user"] = response;
 	// 	}, 
 	// 	defaultErrorCallback
 	// );
-	// r.me("blocked").go(speak, defaultErrorCallback);
-	// r.me("friends").go(speak, defaultErrorCallback);
-	// r.me("karma").go(speak, defaultErrorCallback);
-	// r.me("prefs").go(speak, defaultErrorCallback);
-	// r.me("trophies").go(speak, defaultErrorCallback);
+	// var r = new getReddit().me().go(speak, defaultErrorCallback);
+		// r.me("blocked").go(speak, defaultErrorCallback);
+		// r.me("friends").go(speak, defaultErrorCallback);
+		// r.me("karma").go(speak, defaultErrorCallback);
+		// r.me("prefs").go(speak, defaultErrorCallback);
+		// r.me("trophies").go(speak, defaultErrorCallback);
 
 //prefs
 	// var r = new getReddit();

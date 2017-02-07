@@ -60,6 +60,11 @@ h2{
 nav li{
     display: inline-block;
     vertical-align: top;
+    padding: 5px 10px;
+}
+nav ul{
+    margin: 0;
+    padding: 0;
 }
 .box{
     padding: 0;
@@ -76,8 +81,9 @@ nav li{
     width: 100%;
 }
 .box > .info{
-    position: absolute;
+    /* position: absolute; */
     padding: 15px;
+    margin-left: 140px;
 }
 .card {
     position: relative;
@@ -121,7 +127,10 @@ nav li{
     background: #03A9F4;
     min-width: 140px;
     min-height: 75px;
-    vertical-align: bottom;
+    /* vertical-align: bottom; */
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 .main{
     max-width: 800px;

@@ -1,7 +1,6 @@
 var verbose = verbose || true;
 
-//string/url building
-function addParam(uri, key, value) {
+function addParam(uri, key, value) { //string/url building
 	var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
 	var separator = uri.indexOf('?') !== -1 ? "&" : "?";
 	if (uri.match(re)) return uri.replace(re, '$1' + key + "=" + value + '$2');
@@ -14,14 +13,13 @@ class getReddit{
 		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
 		this.uri = '';
 		this.uriParams = {};
-		this.noOauth = false;		
+		this.noOauth = false; //force non-oauth	
 		this.ajax = {
 			timeout: 6000,
 			beforeSend: function (jqXHR) { 
 				jqXHR.setRequestHeader("Authorization", "bearer " + localStorage.access_token); 
 			}
 		};
-
 	//Login/client data:
 		this.client_id = 'yYMefyDnpSKWhw'; //your client_id here
 		this.redirect_uri = 'http://127.0.0.1:8000/?login=true'; //YOUR redirect_uri here: https://www.reddit.com/prefs/apps/
@@ -39,7 +37,7 @@ class getReddit{
 		this.f = []; //functions
 	}
 
-	//get page (last call for all trains function)
+//get page (last call for all trains function)
 	go(res, err){
 		//make URI
 		this.uri = '/';
@@ -50,7 +48,7 @@ class getReddit{
 		else this.unAuth(res, err);
 		return this;
 	}
-	//get oauth
+//get oauth
 	getAuth(res, err){
 		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
 		var url = "https://oauth.reddit.com"+this.uri;
@@ -58,9 +56,12 @@ class getReddit{
 		this.ajax.url = url;
 		this.ajax.success = res;
 		this.ajax.error = err;
-		$.ajax(this.ajax);
+		var that = this;
+		this.refresh(function(reply){
+			$.ajax(that.ajax);
+		});
 	}
-	//get unAuth
+//get unAuth
 	unAuth(res, err){
 		this.uri += '.json';
 		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
@@ -80,17 +81,17 @@ class getReddit{
 			xhr.send();
 	}
 	
-	//login
+//login
 	login(code, state, callback){
 		var client_id = this.client_id;
 		var uri = this.redirect_uri;
-		console.log("code: "+code, "state: "+state, "client_id: "+client_id, "uri: "+uri);
+		if(verbose) console.log("code: "+code, "state: "+state, "client_id: "+client_id, "uri: "+uri);
 
 		//clear tokens (it's loginpage)
 		console.log("localStorage.clear()");
 		localStorage.clear();
 
-		//login code
+	//login code
 		$.ajax({
 			type: "POST",
 			url: 'https://ssl.reddit.com/api/v1/access_token',
@@ -105,29 +106,71 @@ class getReddit{
 			crossDomain: true,
 			beforeSend: function(xhr){
 				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
+			},
+			success: function(data, x, y){
+				if(verbose) console.log("  data", data, "x", x, "y", y);
+
+				localStorage.setItem("access_token",  data.access_token);
+				localStorage.setItem("refresh_token",  data.refresh_token);
+				localStorage.setItem("scope",  data.scope);
+				localStorage.setItem("loggedIn", true);
+
+				if(verbose) console.log("  new access_token: "+localStorage.access_token);
+				if(verbose) console.log("  new refresh_token: "+localStorage.refresh_token);
+				if(verbose) console.log("  new scope: "+localStorage.scope);
+				if(verbose) console.log("  new loggedIn: "+localStorage.loggedIn);
+
+				callback(data);
+			},
+			error: function (data) {
+				console.log("ERROR: REFRESH FAILED", data);
 			}
-		}).done(function(data, x, y){
-			console.log("data", data);
-			console.log("x", x);
-			console.log("y", y);
-			localStorage.setItem("access_token",  data.access_token);
-			localStorage.setItem("refresh_token",  data.refresh_token);
-			localStorage.setItem("scope",  data.scope);
-			localStorage.setItem("loggedIn", true);
-
-			console.log("new access_token: "+localStorage.access_token);
-			console.log("new refresh_token: "+localStorage.refresh_token);
-			console.log("new scope: "+localStorage.scope);
-			console.log("new loggedIn: "+localStorage.loggedIn);
-
-			callback(data);
 		});
-
-		console.log(localStorage.access_token?localStorage.access_token:"no access_token");
-		console.log(localStorage.refresh_token?localStorage.refresh_token:"no refresh_token");
-		console.log(localStorage.scope?localStorage.scope:"no scope");
-
 	}
+
+//refresh token
+	refresh(callback){
+		var client_id = this.client_id;
+		var uri = this.redirect_uri;
+	//refresh code
+		$.ajax({
+			type: "POST",
+			url: 'https://ssl.reddit.com/api/v1/access_token',
+			data: {
+				client_id: client_id,
+				grant_type: 'refresh_token',
+				refresh_token: localStorage.refresh_token,
+				scope: localStorage.scope,
+				state: 'RANDOM_STRING',
+				duration: 'permanent',
+				redirect_uri: uri,
+			},
+			username: client_id,
+			crossDomain: true,
+			beforeSend: function(xhr){
+				xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + ''));
+			},
+			success: function(data, x, y){
+				if(verbose) console.log("  token refreshed");
+				// if(verbose) console.log("  data", data, "x", x, "y", y);
+				localStorage.setItem("access_token",  data.access_token);
+				//localStorage.setItem("refresh_token",  data.refresh_token); //refresh token stays the same
+				localStorage.setItem("scope",  data.scope);
+				localStorage.setItem("loggedIn", true);
+
+				// if(verbose) console.log("  new access_token: "+localStorage.access_token);
+				// if(verbose) console.log("  new refresh_token: "+localStorage.refresh_token);
+				// if(verbose) console.log("  new scope: "+localStorage.scope);
+				// if(verbose) console.log("  new loggedIn: "+localStorage.loggedIn);
+
+				callback(data);
+			},
+			error: function (data) {
+				console.log("ERROR: REFRESH FAILED", data);
+			}
+		});
+	}
+	
 
 /*
 
@@ -149,6 +192,7 @@ class getReddit{
 	//afaik these are obsolete
 
 //API
+
 // account
 // /api/v1/me
 	me(x){	
@@ -168,8 +212,7 @@ class getReddit{
 	// /prefs/friends
 	// /prefs/messaging
 	// /prefs/trusted
-	// /prefs/where
-		if(x) this.dir.push(x);			
+		if(x) this.dir.push(x); // /prefs/where
 		this.ajax.method = "GET";
 		return this;
 	}
