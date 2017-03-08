@@ -38,12 +38,12 @@ class getReddit{
 	}
 
 //get page (last call for all trains function)
-	go(res, err){
+	go(cb, err){
 		//make URI
 		this.uri = '/';
 		for (var i = 0; i < this.dir.length; i++) this.uri += this.dir[i]+'/';
 
-		//if(verbose) console.log("go()", this.uri);
+		var res = function(x){ cb((typeof x !== 'object')?JSON.parse(x):x); }
 		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) this.getAuth(res, err);
 		else this.unAuth(res, err);
 		return this;
@@ -71,12 +71,12 @@ class getReddit{
 		var xhr = new XMLHttpRequest();
 			xhr.open("GET", url, true);
 			xhr.onload = function () {
-				return JSON.parse(res(xhr.response));
+				return res(xhr.response);
 			};
 			xhr.onerror = function () {
 				if (err !== undefined) {
 					// return err(xhr.response);
-					return JSON.parse(res(xhr.response));
+					return err(xhr.response);
 				}
 			};
 			xhr.send();

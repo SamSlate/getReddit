@@ -57,7 +57,7 @@ function cardBuilder(dataBall){
 }
 //frontpage of subreddit
 function makeFrontpage(res) {
-	response = (typeof res !== 'object')?JSON.parse(res):res;
+	// response = (typeof res !== 'object')?JSON.parse(res):res;
 	if(verbose) console.log("getFrontpage()", response);
 	var children = response.data.children;
 	for(var i in children) document.querySelector(".main").appendChild(cardBuilder(children[i].data));
@@ -66,11 +66,11 @@ function makeFrontpage(res) {
 	};
 }
 function speak(x){
-	response = (typeof x !== 'object')?JSON.parse(x):x;
+	// response = (typeof x !== 'object')?JSON.parse(x):x;
 	console.log(response);
 }
 function speakSubreddits(res) {
-	response = JSON.parse(res);
+	// response = JSON.parse(res);
 	if(verbose) console.log("getFrontpage()", response);
 	var children = [];
 	for(var i in response.data.children) children.push(response.data.children[i].data.display_name);
