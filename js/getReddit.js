@@ -26,7 +26,7 @@ class getReddit{
 		this.loginURI = { 
 			client_id: this.client_id,
 			response_type: "code", //code for first login, token for refresh
-			state:  "RANDOM_STRING", //https://github.com/reddit/reddit/wiki/OAuth2#authorization
+			state:  window.location.pathname+window.location.search, //"RANDOM_STRING", //https://github.com/reddit/reddit/wiki/OAuth2#authorization
 			redirect_uri: this.redirect_uri, 
 			duration: "permanent",
 			scope: 'save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread',
@@ -71,11 +71,12 @@ class getReddit{
 		var xhr = new XMLHttpRequest();
 			xhr.open("GET", url, true);
 			xhr.onload = function () {
-				return res(xhr.response);
+				return JSON.parse(res(xhr.response));
 			};
 			xhr.onerror = function () {
 				if (err !== undefined) {
-					return err(xhr.response);
+					// return err(xhr.response);
+					return JSON.parse(res(xhr.response));
 				}
 			};
 			xhr.send();

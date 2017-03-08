@@ -78,6 +78,7 @@ function speakSubreddits(res) {
 }
 
 //TESTING
+
 //subreddit
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
 	//var r = new getReddit().subreddit('museum').hot().limit("5").count("5").go(makeFrontpage, defaultErrorCallback);
@@ -96,16 +97,16 @@ function speakSubreddits(res) {
 	
 
 //Subreddit PERIPHERAL (about)
-	// var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
-	// r.subreddit('museum').about().go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("moderators").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
-	// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
-			
+	 var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
+		 r.subreddit().about().go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("moderators").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("muted").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("wikibanned").go(speak, defaultErrorCallback);
+		// r.subreddit('museum').about("wikicontributors").go(speak, defaultErrorCallback);
+				
 
 //subreddits, a collection of subreddits
 	// var r = new getReddit().subreddits().where('default').go(speakSubreddits, defaultErrorCallback);
@@ -170,8 +171,8 @@ function speakSubreddits(res) {
 //LOGIN
 	if(q().login == "true"){ //login Case
 		new getReddit().login(q().code, q().state, function(data){ //login(code, state, callback)
-			//do stuff, redirect to homepage probably... 
-			window.location.replace("/");
+			//do stuff, return to last page (probably)... 
+			window.location.replace(q().state);
 		});
 	}
 
