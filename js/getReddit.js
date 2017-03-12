@@ -1,14 +1,40 @@
 var verbose = verbose || true;
 
-function addParam(uri, key, value) { //string/url building
-	var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-	var separator = uri.indexOf('?') !== -1 ? "&" : "?";
-	if (uri.match(re)) return uri.replace(re, '$1' + key + "=" + value + '$2');
-	else return uri + separator + key + "=" + value;
-}
-
 class getReddit{
 	constructor (){
+	//string/url building
+		this.addParam = function(uri, key, value) { 
+			var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+			var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+			if (uri.match(re)) return uri.replace(re, '$1' + key + "=" + value + '$2');
+			else return uri + separator + key + "=" + value;
+		}
+		//return query params as 'obj.attr = value'
+		this.q = function(query){
+			// var query = window.location.search.substring(1);
+			query = query.substring(1);
+			var query_string = {};
+			var found = false;
+			var vars = query.split("&");
+			for (var i=0;i<vars.length;i++) {
+				var pair = vars[i].split("=");
+				if(pair[i] != ""){
+					// If first entry with this name
+					if (typeof query_string[pair[0]] === "undefined") {
+						query_string[pair[0]] = decodeURIComponent(pair[1]);
+					// If second entry with this name
+					} else if (typeof query_string[pair[0]] === "string"){
+						var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+						query_string[pair[0]] = arr;
+					// If third or later entry with this name
+					} else {
+						query_string[pair[0]].push(decodeURIComponent(pair[1]));
+					}
+					found = true;
+				}
+			}
+			return query_string;
+		}
 	//uri		
 		this.dir = []; //directory array .com/dir[0]/dir[1]/etc
 		this.uri = '';
@@ -32,25 +58,28 @@ class getReddit{
 			scope: 'save,identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,submit,subscribe,vote,wikiedit,wikiread',
 		};
 		this.loginURL = "https://www.reddit.com/api/v1/authorize"; 
-			for(var opt in this.loginURI) if(this.loginURI[opt]) this.loginURL = addParam(this.loginURL, opt, this.loginURI[opt]); //build login string		
+			for(var opt in this.loginURI) if(this.loginURI[opt]) this.loginURL = this.addParam(this.loginURL, opt, this.loginURI[opt]); //build login string		
 		this.loginLink = this.loginURL; //set login link	
 		this.f = []; //functions
 	}
 
 //get page (last call for all trains function)
 	go(cb, err){
-		//make URI
+	//make URI
 		this.uri = '/';
-		for (var i = 0; i < this.dir.length; i++) this.uri += this.dir[i]+'/';
+		for (var i = 0; i < this.dir.length; i++) 
+			this.uri += this.dir[i]+'/';
 
 		var res = function(x){ cb((typeof x !== 'object')?JSON.parse(x):x); }
-		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) this.getAuth(res, err);
-		else this.unAuth(res, err);
+		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) 
+			this.getAuth(res, err);
+		else 
+			this.unAuth(res, err);
 		return this;
 	}
 //get oauth
 	getAuth(res, err){
-		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
+		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = this.addParam(this.uri, name, this.uriParams[name]);
 		var url = "https://oauth.reddit.com"+this.uri;
 		if(verbose)  console.log("getAuth()", url);				
 		this.ajax.url = url;
@@ -64,7 +93,7 @@ class getReddit{
 //get unAuth
 	unAuth(res, err){
 		this.uri += '.json';
-		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = addParam(this.uri, name, this.uriParams[name]);
+		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = this.addParam(this.uri, name, this.uriParams[name]);
 		var url = "https://www.reddit.com"+this.uri;
 		if(verbose)  console.log("unAuth()", url);
 
@@ -171,7 +200,17 @@ class getReddit{
 			}
 		});
 	}
-	
+//generic url
+	url(x){
+		this.dir = x.split("/");
+		if(!this.dir[0])
+			this.dir.shift();
+		if(this.dir[this.dir.length-1][0]=="?")
+			this.uriParams = this.q(this.dir.pop());
+		console.log(this.dir, this.uriParams);
+		this.ajax.method = "GET";
+		return this;
+	}
 
 /*
 

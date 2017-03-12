@@ -56,7 +56,7 @@ function cardBuilder(dataBall){
 	return card;
 }
 //frontpage of subreddit
-function makeFrontpage(res) {
+function makeFrontpage(response) {
 	// response = (typeof res !== 'object')?JSON.parse(res):res;
 	if(verbose) console.log("getFrontpage()", response);
 	var children = response.data.children;
@@ -78,6 +78,13 @@ function speakSubreddits(res) {
 }
 
 //TESTING
+	// var r = new getReddit().subreddit("museum").go(makeFrontpage, defaultErrorCallback);
+	var r = new getReddit().url("/r/ImaginaryStarships/top/?sort=top&t=all").go(makeFrontpage, defaultErrorCallback);
+
+	
+
+
+
 
 //subreddit
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
@@ -97,8 +104,8 @@ function speakSubreddits(res) {
 	
 
 //Subreddit PERIPHERAL (about)
-	 var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
-		 r.subreddit().about().go(speak, defaultErrorCallback);
+	//  var r = new getReddit().subreddit('museum').go(makeFrontpage, defaultErrorCallback);
+	// 	 r.subreddit().about().go(speak, defaultErrorCallback);
 		// r.subreddit('museum').about("rules").go(speak, defaultErrorCallback);
 		// r.subreddit('museum').about("banned").go(speak, defaultErrorCallback);
 		// r.subreddit('museum').about("contributors").go(speak, defaultErrorCallback);
@@ -166,7 +173,7 @@ function speakSubreddits(res) {
 	// var r = new getReddit().user("samSlate").downvoted().go(makeFrontpage, defaultErrorCallback);
 
 //Login Link
-	loginLink.href = new getReddit().loginLink;
+	// loginLink.href = new getReddit().loginLink;
 
 //LOGIN
 	if(q().login == "true"){ //login Case
@@ -177,7 +184,7 @@ function speakSubreddits(res) {
 	}
 
 //frontpage
-	var r = new getReddit().go(makeFrontpage, defaultErrorCallback);
+	// var r = new getReddit().go(makeFrontpage, defaultErrorCallback);
 
 //me
 	// new getReddit().me().go(
