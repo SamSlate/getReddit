@@ -14,7 +14,7 @@ Or full fledged login/logout reddit app. The syntax is the same.
 
 Makes like-reddit endpoints (subbreddits, users, etc) objects. 
 
-    `var imaginarySpaceships = new getReddit().subreddit("imaginarySpaceships");
+    var imaginarySpaceships = new getReddit().subreddit("imaginarySpaceships");
 
         imaginarySpaceships.hot().go()
 
@@ -22,11 +22,11 @@ Makes like-reddit endpoints (subbreddits, users, etc) objects.
 
                 console.log(res); // r.imaginarySpaceships hot/front page
 
-            })`
+            })
 
 once created, all reddit enpoints related to that page type can be called on that object without re-instantiating the object:
         
-    `imaginarySpaceships.wiki().go()
+    imaginarySpaceships.wiki().go()
 
         .then(function(res){
 
@@ -34,11 +34,11 @@ once created, all reddit enpoints related to that page type can be called on tha
 
         })
 
-        .catch(defaultErrorCallback);`
+        .catch(defaultErrorCallback);
 
 and the standard subreddit filtering:
 
-    `imaginarySpaceships.top("week").go()
+    imaginarySpaceships.top("week").go()
 
         .then(function(res){
 
@@ -46,6 +46,6 @@ and the standard subreddit filtering:
 
         })
 
-        .catch(defaultErrorCallback);`
+        .catch(defaultErrorCallback);
 
 see /js/test.js for the working list of object endpoints. 
