@@ -5,7 +5,7 @@
 
 simplify the reddit api for entirely browser/clientside devices. 
 
-Reddit uri conventions are... unique. Hopefully this will save a lot of webdevelopers headaches when they just want to make, say a page background that pulls the day's top post from r/earthporn. 
+Reddit uri conventions are... unique. Hopefully this will save other webdevelopers a lot of headaches when they just want to make, say a page background that pulls the day's top post from r/earthporn. 
 
 Or full fledged login/logout reddit app. The syntax is the same. 
 
