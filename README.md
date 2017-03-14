@@ -29,7 +29,7 @@ given `jsonObj`, you can modify the reddit object `r` and update your page:
     
 or request 'about' subreddit section:
 
-    r.about().go(function(jsonObj){
+    r.subreddit().about().go(function(jsonObj){
         console.log(jsonObj);
     }, defaultErrorCallback);
     
