@@ -20,7 +20,7 @@ Like-reddit endpoints (subbreddits, users, etc) are distinct objects.
 
             .then(function(res){
 
-                console.log(res); // r.imaginarySpaceships hot/front page
+                console.log(res); // r/imaginarySpaceships hot/front page
 
             })
 
@@ -55,11 +55,11 @@ Raw URI input is also accepted
 
     var sub = new getReddit().url("/r/imaginarystarships/controversial/?sort=month");
 
-        sub.hot().go()
+        sub.go()
 
             .then(function(res){
 
-                console.log(res); // r.imaginarySpaceships hot/front page
+                console.log(res); // r/imaginarySpaceships 's controversial("month") page
 
             })
 
