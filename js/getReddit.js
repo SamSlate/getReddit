@@ -69,7 +69,7 @@ class getReddit{
 		this.uri = '/';
 		for (var i = 0; i < this.dir.length; i++) 
 			this.uri += this.dir[i]+'/';
-
+		this.uri  = this.uri.replace(/\/+/g , "/");
 		var res = function(x){ cb((typeof x !== 'object')?JSON.parse(x):x); }
 		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) 
 			this.getAuth(res, err);
@@ -97,18 +97,26 @@ class getReddit{
 		var url = "https://www.reddit.com"+this.uri;
 		if(verbose)  console.log("unAuth()", url);
 
-		var xhr = new XMLHttpRequest();
-			xhr.open("GET", url, true);
-			xhr.onload = function () {
-				return res(xhr.response);
-			};
-			xhr.onerror = function () {
-				if (err !== undefined) {
-					// return err(xhr.response);
-					return err(xhr.response);
-				}
-			};
-			xhr.send();
+		axios.get(url)
+		.then(function (response) {
+			return res(response.data);
+		})
+		.catch(function (error) {
+			console.log(error);
+		});
+
+		// var xhr = new XMLHttpRequest();
+		// 	xhr.open("GET", url, true);
+		// 	xhr.onload = function () {
+		// 		return res(xhr.response);
+		// 	};
+		// 	xhr.onerror = function () {
+		// 		if (err !== undefined) {
+		// 			// return err(xhr.response);
+		// 			return err(xhr.response);
+		// 		}
+		// 	};
+		// 	xhr.send();
 	}
 	
 //login
@@ -202,11 +210,27 @@ class getReddit{
 	}
 //generic url
 	url(x){
+		x = x.toLowerCase();
 		this.dir = x.split("/");
+		if(this.dir.length == 1){
+			this.dir = [];
+			return this;
+		}
 		if(!this.dir[0])
-			this.dir.shift();
+			this.dir.shift();			
 		if(this.dir[this.dir.length-1][0]=="?")
 			this.uriParams = this.q(this.dir.pop());
+
+		if(this.dir[0] == "r"){
+			if(this.dir[2] == "comments" && this.dir[3])
+				return this.subreddit(this.dir[1]).comments(this.dir[3]);
+			else
+				return this.subreddit(this.dir[1]);
+		}
+		if(this.dir[0] == "user" && !this.dir[2]){ //Ignore meta/multi for the moment....
+			//http://redditairplane.com/user/SamSlate/m/age
+			return this.user(this.dir[1]);
+		}
 		console.log(this.dir, this.uriParams);
 		this.ajax.method = "GET";
 		return this;
@@ -561,6 +585,7 @@ class getReddit{
 	subreddit(subreddit){  
 		this.dir[0] = "r";
 		this.dir[1] = subreddit;
+		this.type = "subreddit";
 
 		var that = this;
 		var sorting = {
@@ -705,6 +730,7 @@ class getReddit{
 //SUBREDDITS
 	subreddits(x){
 		this.dir[0] = "subreddits"; 
+		this.type = "subreddits";
 		var that = this;		
 		var opts = {
 			search: function(q){ // /subreddits/search
@@ -740,7 +766,8 @@ class getReddit{
 // USER
 	user(user){
 		this.dir[0] = "user";
-		this.dir[1] = user;		
+		this.dir[1] = user;	
+		this.type = "user";	
 		var that = this;		
 		var sorting = {
 			hot: function(){ 
@@ -832,8 +859,5 @@ class getReddit{
 		};
 
 		return userOpts;
-	};	
-}
-
-
-	
+	};
+};

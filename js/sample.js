@@ -83,9 +83,6 @@ function speakSubreddits(res) {
 
 	
 
-
-
-
 //subreddit
 	//var r = new getReddit().subreddit("museum").after("null").count("50").go(makeFrontpage, defaultErrorCallback);	
 	//var r = new getReddit().subreddit('museum').hot().limit("5").count("5").go(makeFrontpage, defaultErrorCallback);
