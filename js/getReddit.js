@@ -897,7 +897,6 @@ class getReddit{
 		//go
 			go: that.go.bind(that)
 		};
-
 		return userOpts;
 	};
 };
