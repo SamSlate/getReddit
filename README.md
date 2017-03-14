@@ -3,7 +3,7 @@
 
 ## Goal
 
-simplify the reddit api for entirely browser/clientside devices. 
+simplify the reddit api for browser/clientside applications. 
 
 Reddit uri conventions are... unique. Hopefully this will save other webdevelopers a lot of headaches when they just want to make, say a page background that pulls the day's top post from r/earthporn.
 
