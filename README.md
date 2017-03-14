@@ -1,7 +1,7 @@
 # getReddit
 *An entirely client-side javascript wrapper for the Reddit API*
 
-## goal
+## Goal
 
 simplify the reddit api for entirely browser/clientside devices. 
 
@@ -10,7 +10,7 @@ Reddit uri conventions are... unique. Hopefully this will save other webdevelope
 Or full fledged login/logout reddit app. The syntax is the same. 
 
 
-## usage
+## Usage
 
 Makes like-reddit endpoints (subbreddits, users, etc) objects. 
 
