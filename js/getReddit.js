@@ -1,4 +1,5 @@
-var verbose = verbose || true;
+// var verbose = verbose || true;
+var verbose = false;
 
 class getReddit{
 	constructor (){
@@ -62,20 +63,21 @@ class getReddit{
 		this.loginLink = this.loginURL; //set login link	
 		this.f = []; //functions
 	}
-
 //get page (last call for all trains function)
-	go(cb, err){
-	//make URI
+	go(){
+		//make URI
 		this.uri = '/';
 		for (var i = 0; i < this.dir.length; i++) 
 			this.uri += this.dir[i]+'/';
 		this.uri  = this.uri.replace(/\/+/g , "/");
 		var res = function(x){ cb((typeof x !== 'object')?JSON.parse(x):x); }
-		if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) 
-			this.getAuth(res, err);
-		else 
-			this.unAuth(res, err);
-		return this;
+
+		return this.unAuth();
+
+		// if (localStorage.getItem("loggedIn") == "true" && !this.noOauth) 
+		// 	return this.getAuth();
+		// else 
+		// 	return this.unAuth();
 	}
 //get oauth
 	getAuth(res, err){
@@ -91,19 +93,34 @@ class getReddit{
 		});
 	}
 //get unAuth
-	unAuth(res, err){
+	unAuth(){
 		this.uri += '.json';
 		for(var name in this.uriParams) if(this.uriParams[name]) this.uri = this.addParam(this.uri, name, this.uriParams[name]);
 		var url = "https://www.reddit.com"+this.uri;
-		if(verbose)  console.log("unAuth()", url);
+		
+		console.log("unAuth()", url);
 
-		axios.get(url)
-		.then(function (response) {
-			return res(response.data);
-		})
-		.catch(function (error) {
-			console.log(error);
+		return new Promise((resolve, reject) => {
+			axios.get(url)
+				.then(function (response) {
+					resolve(response.data);
+				})
+				.catch(function (error) {
+					console.log("ERROR:", error, url);
+					reject(error);
+				});
 		});
+
+		// axios.get(url)
+		// 	.then(function (response) {
+		// 		console.log("got", response);
+		// 		console.log(resolve);
+		// 		resolve(response.data);
+		// 	})
+		// 	.catch(function (error) {
+		// 		console.log(error);
+		// 		reject(error);
+		// 	});
 
 		// var xhr = new XMLHttpRequest();
 		// 	xhr.open("GET", url, true);
@@ -210,22 +227,23 @@ class getReddit{
 	}
 //generic url
 	url(x){
+		console.log("url(x):", x);
 		x = x.toLowerCase();
 		this.dir = x.split("/");
 		if(this.dir.length == 1){
 			this.dir = [];
-			return this;
+			return this.subreddit();
 		}
 		if(!this.dir[0])
 			this.dir.shift();			
 		if(this.dir[this.dir.length-1][0]=="?")
 			this.uriParams = this.q(this.dir.pop());
-
 		if(this.dir[0] == "r"){
 			if(this.dir[2] == "comments" && this.dir[3])
 				return this.subreddit(this.dir[1]).comments(this.dir[3]);
-			else
+			else{
 				return this.subreddit(this.dir[1]);
+			}
 		}
 		if(this.dir[0] == "user" && !this.dir[2]){ //Ignore meta/multi for the moment....
 			//http://redditairplane.com/user/SamSlate/m/age
@@ -580,151 +598,171 @@ class getReddit{
 			go: that.go.bind(that)
 		}
 	}
+	checkType(x){
+		if(this.type && this.type != x)
+			throw 'this reddit object was not initialized as type "'+x+'"! type is: '+this.type;
+		else
+			this.type = x;
+	}
 
 // subreddit
 	subreddit(subreddit){  
-		this.dir[0] = "r";
-		this.dir[1] = subreddit;
-		this.type = "subreddit";
+	//extends getReddit as subreddit
+
+		this.checkType("subreddit");
+		this.sub = this.dir[1] || subreddit;
+
+		// console.log(this.dir, this.title);
 
 		var that = this;
-		var sorting = {
-// /comments/article
-			comments: function(article){ 
-				that.dir[0] = "r";
-				that.dir[2] = "comments";
-				that.dir[3] = article;		
-				var sorting = {
-					sort: function(t){
-						if(t=="newest") t = "new";
-						that.uriParams.sort = t;
-						return that;
-					},
-					go: that.go.bind(that)
-				}
-				return sorting;
-			},
-// /duplicates/article
-			duplicates: function(article){ 
-				that.dir[2] = "duplicates";
-				that.dir[3] = article;
-				return that; 
-			},
-// /controversial
-			controversial: function(t){ 
-				that.dir[2] = "controversial";
-				that.uriParams.sort = 'controversial';
-				that.uriParams.t = t;
-				return that; 
-			},
-// /hot
-			hot: function(){ 
-				that.dir[2] = "hot";
-				that.uriParams.sort = 'hot';
-				return that; 
-			},
-// /new
-			newest: function(){ //-_-
-				that.dir[2] = "new";
-				that.uriParams.sort = 'new';
-				return that; 
-			},
-// /random
-		/*//CORS rejects Redirects.....
-			random: function(){
-				that.dir[1] = "random";
-				return that; 
-			},
-		*/
-// /rising
-			rising: function(){ 
-				that.dir[2] = "rising";
-				that.uriParams.sort = 'rising';
-				return that; 
-			},
-// /top
-			top: function(t){ 
-				that.dir[2] = "top";
-				that.uriParams.sort = 'top';
-				that.uriParams.t = t;
-				return that; 
-			},
-////gilded
-			gilded: function(){ 
-				that.dir[2] = "gilded";
-				return that; 
-			},
-////promoted
-			promoted: function(){ 
-				that.dir[2] = "ads";
-				return that; 
-			},		
-// /r/subreddit/about
-			// /about/rules
-			// /about/banned
-			// /about/contributors
-			// /about/moderators
-			// /about/muted
-			// /about/wikibanned
-			// /about/wikicontributors
-			about: function(x){ 
-				that.dir[2] = "about";
-				if(x) that.dir[3] = x; // /about/where
-				return that; 
-			},
-// /sidebar 
-			sidebar: function(){ //IDK if this endpoint actually exists
-				that.dir[2] = "sidebar";
-				return that; 
-			},
-// /sticky
-			sticky: function(){ 
-				that.dir[2] = "sticky";
-				console.log("sticky(): Will 404 if there is not currently a sticky post in this subreddit. -reddit.com"); //¯\_(ツ)_/¯ I can't find a example of this that works
-				return that; 
-			},
-// wiki
-// /api/wiki/alloweditor/add
-// /api/wiki/alloweditor/del
-// /api/wiki/alloweditor/act
-// /api/wiki/edit
-// /api/wiki/hide
-// /api/wiki/revert
-			// /wiki/pages
-			// /wiki/{page}
-			// /wiki/discussions/{page}
-			// /wiki/revisions
-			// /wiki/revisions/{page}
-			// /wiki/settings/{page}
-			wiki: function(x){ 
-				that.dir[2] = "wiki";
-				that.dir[3] = x?x:"pages";
-				return that; 
-			},
-		//listing options
-			after: that.after.bind(that),
-			before: that.before.bind(that),
-			count: that.count.bind(that),
-			show: that.show.bind(that),
-			sr_detail: that.sr_detail.bind(that),
-		//go
-			go: that.go.bind(that)
-		}
-// /r/subreddit/about/edit
+		function Clears(d2, sort, t){
+			//clears
+			that.uriParams = {};
+			that.dir = [];
+			that.dir[0] = "r";
+			that.dir[1] = that.sub;
+			that.title = that.sub || "frontpage";
+	
+			console.log("Clears:", d2, sort, t);
 
-// /api/delete_sr_banner
-// /api/delete_sr_header
-// /api/delete_sr_icon
-// /api/delete_sr_img
-// /api/recommend/sr/srnames
-// /api/search_reddit_names
-// /api/site_admin
-// /api/submit_text
-// /api/subreddit_stylesheet
-// /api/subreddits_by_topic
-// /api/subscribe
-// /api/upload_sr_img
-		return sorting; 
+			if(d2) that.dir.push(d2);
+			if(sort) that.uriParams.sort = sort;
+			if(t) that.uriParams.t = t;
+
+			return that; 
+		}
+		// Clears();
+
+	// /comments/article
+		this.comments = function(article){
+			if(!this.dir[1])
+				throw "no subreddit specified!";
+			that.dir[2] = "comments";
+			that.dir[3] = article;		
+			var commentSorting = {
+				sort: function(t){
+					if(t=="newest") t = "new";
+					that.uriParams.sort = t;
+					return that;
+				},
+				go: that.go.bind(that)
+			}
+			return this;
+		};
+	// /duplicates/article
+		this.duplicates = function(article){
+			that.uriParams = {};
+			that.dir[2] = "duplicates";
+			that.dir[3] = article;
+			return this;
+		};
+	// /controversial
+		this.controversial = function(t){
+			return Clears.call(this, "controversial", "controversial", t?t:"all"); //default to 'all'
+		};
+	// /hot
+		this.hot = function(){ 
+			return Clears.call(this, "hot", "hot", null);
+		};
+	// /new
+		this.newest = function(){ //-_-
+			return Clears.call(this, "new", "new", null);
+		};
+	// /random
+	/*//CORS rejects Redirects.....
+		random: function(){
+			that.dir[1] = "random";
+			return that; 
+		},
+	*/
+	// /rising
+		this.rising = function(){
+			return Clears.call(this, "rising", "rising", null);
+		};
+	// /top
+		this.top = function(t){ 
+			return Clears.call(this, "top", "top", t?t:"all"); //default to all
+		};
+	////gilded
+		this.gilded = function(){ 
+			return Clears.call(this, "gilded", null, null);
+		};
+	////promoted
+		this.promoted = function(){ 
+			that.dir[2] = "ads";
+			return this; 
+			return Clears.call(this, "ads", null, null);
+		};
+	// /r/subreddit/about
+		// /about/rules
+		// /about/banned
+		// /about/contributors
+		// /about/moderators
+		// /about/muted
+		// /about/wikibanned
+		// /about/wikicontributors
+		this.about = function(x){
+			that.dir[2] = "about";
+			if(x) that.push(x); // /about/where
+			return this; 
+		};
+	// /sidebar
+		this.sidebar = function(){ //IDK if this endpoint actually exists
+			that.dir[2] = "sidebar";
+			return this; 
+		};
+	// /sticky
+		this.sticky = function(){ 
+			that.dir[2] = "sticky";
+			console.log("sticky(): Will 404 if there is not currently a sticky post in this subreddit. -reddit.com"); //¯\_(ツ)_/¯ I can't find a example of this that works
+			return this; 
+		};
+	// wiki
+	// /api/wiki/alloweditor/add
+	// /api/wiki/alloweditor/del
+	// /api/wiki/alloweditor/act
+	// /api/wiki/edit
+	// /api/wiki/hide
+	// /api/wiki/revert
+		// /wiki/pages
+		// /wiki/{page}
+		// /wiki/discussions/{page}
+		// /wiki/revisions
+		// /wiki/revisions/{page}
+		// /wiki/settings/{page}
+		this.wiki = function(x){ 
+			that.dir[2] = "wiki";
+			that.dir[3] = x?x:"pages";
+			return this; 
+		};
+	//listing options
+	/* (redundant)
+		after: that.after.bind(that),
+		before: that.before.bind(that),
+		count: that.count.bind(that),
+		show: that.show.bind(that),
+		sr_detail: that.sr_detail.bind(that),
+		//go
+			go: that.go.bind(that) //go
+		}
+	*/
+
+	// /r/subreddit/about/edit
+
+	// /api/delete_sr_banner
+	// /api/delete_sr_header
+	// /api/delete_sr_icon
+	// /api/delete_sr_img
+	// /api/recommend/sr/srnames
+	// /api/search_reddit_names
+	// /api/site_admin
+	// /api/submit_text
+	// /api/subreddit_stylesheet
+	// /api/subreddits_by_topic
+	// /api/subscribe
+	// /api/upload_sr_img
+	
+		return this; 
 	}
 
 //SUBREDDITS
@@ -738,21 +776,23 @@ class getReddit{
 				that.uriParams.q=q?q:"";
 				return that;
 			},
-			where: function(q){ // /subreddits/where
-			// /subreddits/default
-			// /subreddits/gold
-			// /subreddits/new
-			// /subreddits/popular
+			where: function(q){
+			// /subreddits/where
+				// /subreddits/default
+				// /subreddits/gold
+				// /subreddits/new
+				// /subreddits/popular
 				that.noOauth = true; //oauth 401's
 				that.dir.push(q);
 				return that;
 			},
-			mine: function(q){ // /subreddits/mine/where
+			mine: function(q){
+			// /subreddits/mine/where
 				// /subreddits/mine/contributor
 				// /subreddits/mine/moderator
 				// /subreddits/mine/subscriber
-				that.dir.push("mine");
-				that.dir.push(q);
+				this.dir[1] = "mine"; 
+				this.dir[2] = q?q:"subscriber"; //default to subscriber
 				that.ajax.method = "GET";
 				that.ajax.dataType = "json";
 				return that;

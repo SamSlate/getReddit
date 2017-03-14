@@ -62,6 +62,7 @@ function makeFrontpage(response) {
 	var children = response.data.children;
 	for(var i in children) document.querySelector(".main").appendChild(cardBuilder(children[i].data));
 	loadMore.onclick  = function(){  
+		console.log(response.data.after);
 		r.after(response.data.after).go(makeFrontpage, defaultErrorCallback); 
 	};
 }
@@ -80,6 +81,7 @@ function speakSubreddits(res) {
 //TESTING
 	// var r = new getReddit().subreddit("museum").go(makeFrontpage, defaultErrorCallback);
 	var r = new getReddit().url("/r/ImaginaryStarships/top/?sort=top&t=all").go(makeFrontpage, defaultErrorCallback);
+	var r = new getReddit().subreddit('ImaginaryStarships').top("all").go(makeFrontpage, defaultErrorCallback);
 
 	
 
