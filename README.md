@@ -3,35 +3,49 @@
 
 ## goal
 
-a modifiable/executible reddit object. 
+simplify the reddit api for entirely browser/clientside devices. 
+
+Reddit uri conventions are... unique. Hopefully this will save a lot of webdevelopers headaches when they just want to make, say a page background that pulls the day's top post from r/earthporn. 
+
+Or full fledged login/logout reddit app. The syntax is the same. 
+
 
 ## usage
 
-    var r = new getReddit().url("/r/ImaginaryStarships/top/?sort=top&t=all").go(function(jsonObj){
-        console.log(jsonObj);
-    }, defaultErrorCallback);
+Makes like-reddit endpoints (subbreddits, users, etc) objects. 
+
+`var imaginarySpaceships = new getReddit().subreddit("imaginarySpaceships");
+
+    imaginarySpaceships.hot().go()
+
+        .then(function(res){
+
+            console.log(res); // r.imaginarySpaceships hot/front page
+
+        })`
+
+once created, all reddit enpoints related to that page type can be called on that object without re-instantiating the object:
+        
+`imaginarySpaceships.wiki().go()
     
-where [a json object](https://www.reddit.com/r/ImaginaryStarships/top/.json?sort=top&t=all) is returned to a callback function. 
-
-the above `.url()` is equivilant to:
-
-    var r = new getReddit().subreddit('ImaginaryStarships').top("all").go(callback, defaultErrorCallback);
+    .then(function(res){
     
-the reddit object `r` can now be modifed by various function calls: 
-
-    r.after('t3_5qrj9s');
-
-given `jsonObj`, you can modify the reddit object `r` and update your page:
-
-    loadMoreButton.onclick  = function(){  
-		r.after(jsonObj.data.after).go(updatePageCallBack, defaultErrorCallback); 
-	};
+        console.log(res.kind); //wikipagelisting 
     
-or request 'about' subreddit section:
+    })
+    
+    .catch(defaultErrorCallback);`
 
-    r.subreddit().about().go(function(jsonObj){
-        console.log(jsonObj);
-    }, defaultErrorCallback);
+and the standard subreddit filtering:
+
+`imaginarySpaceships.top("week").go()
     
+    .then(function(res){
     
-\*very much a work in progress, critiques/contributions welcome
+        console.log(res); //this weeks top post 
+    
+    })
+    
+    .catch(defaultErrorCallback);`
+
+see /js/test.js for the working list of object endpoints. 
