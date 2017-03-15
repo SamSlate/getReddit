@@ -106,7 +106,8 @@ class getReddit{
 					resolve(response.data);
 				})
 				.catch(function (error) {
-					console.log("ERROR:", error, url);
+					console.log("ERROR:", url);
+					console.log(error);
 					reject(error);
 				});
 		});
@@ -249,9 +250,9 @@ class getReddit{
 			//http://redditairplane.com/user/SamSlate/m/age
 			return this.user(this.dir[1]);
 		}
-		console.log(this.dir, this.uriParams);
-		this.ajax.method = "GET";
-		return this;
+		// console.log(this.dir, this.uriParams);
+		// this.ajax.method = "GET";
+		// return this;
 	}
 
 /*
@@ -606,14 +607,12 @@ class getReddit{
 	}
 
 // subreddit
-	subreddit(subreddit){  
-	//extends getReddit as subreddit
+	subreddit(subreddit){ //extends getReddit as subreddit
 
 		this.checkType("subreddit");
 		this.sub = this.dir[1] || subreddit;
-
-		// console.log(this.dir, this.title);
-
+		this.dir[0] = this.dir[0] || "r";
+		
 		var that = this;
 		function Clears(d2, sort, t){
 			//clears
@@ -623,7 +622,7 @@ class getReddit{
 			that.dir[1] = that.sub;
 			that.title = that.sub || "frontpage";
 	
-			console.log("Clears:", d2, sort, t);
+			// console.log("Clears:", d2, sort, t);
 
 			if(d2) that.dir.push(d2);
 			if(sort) that.uriParams.sort = sort;
@@ -689,8 +688,6 @@ class getReddit{
 		};
 	////promoted
 		this.promoted = function(){ 
-			that.dir[2] = "ads";
-			return this; 
 			return Clears.call(this, "ads", null, null);
 		};
 	// /r/subreddit/about
@@ -702,20 +699,16 @@ class getReddit{
 		// /about/wikibanned
 		// /about/wikicontributors
 		this.about = function(x){
-			that.dir[2] = "about";
-			if(x) that.push(x); // /about/where
-			return this; 
+			return Clears.call(this, "about", x, null);
 		};
 	// /sidebar
 		this.sidebar = function(){ //IDK if this endpoint actually exists
-			that.dir[2] = "sidebar";
-			return this; 
+			return Clears.call(this, "sidebar", null, null);
 		};
 	// /sticky
 		this.sticky = function(){ 
-			that.dir[2] = "sticky";
 			console.log("sticky(): Will 404 if there is not currently a sticky post in this subreddit. -reddit.com"); //¯\_(ツ)_/¯ I can't find a example of this that works
-			return this; 
+			return Clears.call(this, "sticky", null, null);
 		};
 	// wiki
 	// /api/wiki/alloweditor/add
@@ -805,9 +798,33 @@ class getReddit{
 
 // USER
 	user(user){
-		this.dir[0] = "user";
-		this.dir[1] = user;	
-		this.type = "user";	
+
+		this.checkType("user");
+		this.username = this.dir[1] || user;
+		this.dir = ["user", user];	
+
+		var that = this;
+		function Clears(d2, sort, t){
+			//clears
+			that.uriParams = {};
+			that.dir = [];
+			that.dir[0] = "r";
+			that.dir[1] = that.sub;
+			that.title = that.sub || "frontpage";
+	
+			console.log("Clears:", d2, sort, t);
+
+			if(d2) that.dir.push(d2);
+			if(sort) that.uriParams.sort = sort;
+			if(t) that.uriParams.t = t;
+
+			return that; 
+		}
+
+
+		
+		console.log("user()", this.username);
+		
 		var that = this;		
 		var sorting = {
 			hot: function(){ 
@@ -897,6 +914,7 @@ class getReddit{
 		//go
 			go: that.go.bind(that)
 		};
+
 		return userOpts;
 	};
 };

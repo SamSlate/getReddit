@@ -1,4 +1,4 @@
-var imaginarySpaceships = new getReddit();
+var imaginarySpaceships = new getReddit().url("r/imaginarySpaceships");
     imaginarySpaceships.controversial().go()
     .then(function(res){
         console.log(res.kind, res.data);
