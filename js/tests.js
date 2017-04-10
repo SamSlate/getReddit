@@ -1,11 +1,16 @@
-var imaginarySpaceships = new getReddit().url("r/imaginarySpaceships");
-    imaginarySpaceships.controversial().go()
-    .then(function(res){
-        console.log(res.kind, res.data);
-        return true;
+//subreddit test
+function subredditTest(){
+    var imaginarySpaceships = new getReddit().url("r/imaginarySpaceships");
+    imaginarySpaceships.go().then(function(success){
+        imaginarySpaceships.hot().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
     })
     .then(function(success){
-        imaginarySpaceships.hot().go()
+        imaginarySpaceships.controversial().go()
         .then(function(res){
             console.log(res.kind, res.data);
             return true;
@@ -83,4 +88,104 @@ var imaginarySpaceships = new getReddit().url("r/imaginarySpaceships");
             return true;
         })
         .catch(defaultErrorCallback);
-    });
+    })
+    .catch(defaultErrorCallback);
+
+//user tests
+var samslate = new getReddit().url("user/samslate");
+    samslate.go().then(function(success){
+        samslate.hot().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.controversial().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.newest().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.top().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.comments().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.downvoted().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.hidden().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.hidden().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.overview().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.saved().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.submitted().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })
+    .then(function(success){
+        samslate.upvoted().go()
+        .then(function(res){
+            console.log(res.kind, res.data);
+            return true;
+        })
+        .catch(defaultErrorCallback);
+    })

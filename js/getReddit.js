@@ -240,9 +240,14 @@ class getReddit{
 		if(this.dir[this.dir.length-1][0]=="?")
 			this.uriParams = this.q(this.dir.pop());
 		if(this.dir[0] == "r"){
-			if(this.dir[2] == "comments" && this.dir[3])
-				return this.subreddit(this.dir[1]).comments(this.dir[3]);
+			console.log(this.dir[2]);
+			if(this.dir[2] == "comments" && this.dir[3]){
+				console.log("is comments..");
+				console.log(this.dir);
+				return this.subreddit(this.dir[1]).article(this.dir[3]);
+			}
 			else{
+				console.log("is subreddit..");
 				return this.subreddit(this.dir[1]);
 			}
 		}
@@ -599,18 +604,45 @@ class getReddit{
 			go: that.go.bind(that)
 		}
 	}
-	checkType(x){
+	checkType(x, absorbs){
+		console.log(x, absorbs);
+		if(absorbs) 
+			if(this.type == absorbs)
+				this.type = x;
 		if(this.type && this.type != x)
 			throw 'this reddit object was not initialized as type "'+x+'"! type is: '+this.type;
 		else
 			this.type = x;
 	}
 
+//article/comments
+	comments(article){
+		this.checkType("article", "subreddit");
+		console.log("article", article);
+		if(!this.dir[1])
+			throw "no subreddit specified!";
+		this.dir[2] = "comments";		
+		// this.dir[3] = article;		
+		var commentSorting = {
+			sort: function(t){
+				if(t=="newest") t = "new";
+				this.uriParams.sort = t;
+				return this;
+			},
+			go: this.go.bind(this)
+		}
+		return this;
+	}
+	article(article){
+		return this.comments(article);
+	};
+
 // subreddit
 	subreddit(subreddit){ //extends getReddit as subreddit
 
 		this.checkType("subreddit");
 		this.sub = this.dir[1] || subreddit;
+		this.title = 'r/'+this.sub;
 		this.dir[0] = this.dir[0] || "r";
 		
 		var that = this;
@@ -632,22 +664,6 @@ class getReddit{
 		}
 		// Clears();
 
-	// /comments/article
-		this.comments = function(article){
-			if(!this.dir[1])
-				throw "no subreddit specified!";
-			that.dir[2] = "comments";
-			that.dir[3] = article;		
-			var commentSorting = {
-				sort: function(t){
-					if(t=="newest") t = "new";
-					that.uriParams.sort = t;
-					return that;
-				},
-				go: that.go.bind(that)
-			}
-			return this;
-		};
 	// /duplicates/article
 		this.duplicates = function(article){
 			that.uriParams = {};
@@ -724,7 +740,7 @@ class getReddit{
 		// /wiki/revisions/{page}
 		// /wiki/settings/{page}
 		this.wiki = function(x){ 
-			that.dir[2] = "wiki";
+			Clears.call(this, "wiki", null, null);
 			that.dir[3] = x?x:"pages";
 			return this; 
 		};
@@ -798,21 +814,19 @@ class getReddit{
 
 // USER
 	user(user){
+		console.log("user()");
 
 		this.checkType("user");
 		this.username = this.dir[1] || user;
-		this.dir = ["user", user];	
+		this.title = 'u/'+this.username;
+		this.dir = ["user", user];
 
 		var that = this;
 		function Clears(d2, sort, t){
 			//clears
 			that.uriParams = {};
-			that.dir = [];
-			that.dir[0] = "r";
-			that.dir[1] = that.sub;
-			that.title = that.sub || "frontpage";
-	
-			console.log("Clears:", d2, sort, t);
+			that.dir = ["user", that.username];
+			that.title = that.username || "unknown";
 
 			if(d2) that.dir.push(d2);
 			if(sort) that.uriParams.sort = sort;
@@ -820,101 +834,64 @@ class getReddit{
 
 			return that; 
 		}
-
-
-		
-		console.log("user()", this.username);
-		
-		var that = this;		
-		var sorting = {
-			hot: function(){ 
-				that.uriParams.sort = 'hot'; 
-				return that;
-			},
-			newest: function(){ 
-				that.uriParams.sort = 'new'; 
-				return that;
-			},
-			top: function(t){
-				that.uriParams.sort = 'top';
-				that.uriParams.t = t?t:"all";
-				return that;
-			},
-			controversial: function(t){
-				that.uriParams.sort = 'controversial';
-				that.uriParams.t = t?t:"all";
-				return that;
-			},
-		//listing options
-			after: that.after.bind(that),
-			before: that.before.bind(that),
-			count: that.count.bind(that),
-			show: that.show.bind(that),
-			sr_detail: that.sr_detail.bind(that),
-		//go
-			go: that.go.bind(that)
-		}
-
-// /api/friend
-// /api/setpermissions
-// /api/unfriend
-// /api/username_available
-// /api/v1/me/friends/username
-// /api/v1/user/username/trophies
-
-		var userOpts = {
-// /user/username/about
-		/* I can't find a single users that returns an about page */
-// /user/username/comments
-			comments: function(){
-				that.dir[2] = "comments";
-				return sorting;
-			},
-// /user/username/downvoted
-			downvoted: function(){
-				that.dir[2] = "downvoted";
-				return sorting;
-			},
-// /user/username/gilded
-			gilded: function(){
-				that.dir[2] = "gilded";
-				return that;
-			},
-// /user/username/hidden
-			hidden: function(){
-				that.dir[2] = "hidden";
-				return sorting;
-			},
-// /user/username/overview
-			overview: function(){
-				that.dir[2] = "overview";
-				return sorting;
-			},
-// /user/username/saved
-			saved: function(){
-				that.dir[2] = "saved";
-				return sorting;
-			},
-// /user/username/submitted
-			submitted: function(){
-				that.dir[2] = "submitted";
-				return sorting;
-			},
-// /user/username/upvoted
-			upvoted: function(){
-				that.dir[2] = "upvoted";
-				return sorting;
-			},
-		//listing options
-			after: that.after.bind(that),
-			before: that.before.bind(that),
-			count: that.count.bind(that),
-			show: that.show.bind(that),
-			sr_detail: that.sr_detail.bind(that),
-		//go
-			go: that.go.bind(that)
+				
+	// var that = this;		
+	// var sorting = {
+		this.hot = function(){ 
+			return Clears.call(this, null, "hot");
+		};
+		this.newest = function(){ 
+			return Clears.call(this, null, "new");
+		};
+		this.top = function(){ 
+			return Clears.call(this, null, "top", t?t:"all"); //default to all
+		};
+		this.controversial = function(){
+			return Clears.call(this, null, "controversial", t?t:"all"); //default to all
 		};
 
-		return userOpts;
+	// /api/friend
+	// /api/setpermissions
+	// /api/unfriend
+	// /api/username_available
+	// /api/v1/me/friends/username
+	// /api/v1/user/username/trophies
+
+	// /user/username/about
+		/* I can't find a single users that returns an about page */
+	// /user/username/comments
+		this.comments = function(){
+			return Clears.call(this, "comments");
+		};
+	// /user/username/downvoted
+		this.downvoted = function(){
+			return Clears.call(this, "downvoted");
+		};
+	// /user/username/gilded
+		this.gilded = function(){
+			return Clears.call(this, "gilded");
+		};
+	// /user/username/hidden
+		this.hidden = function(){
+			return Clears.call(this, "hidden");
+		};
+	// /user/username/overview
+		this.overview = function(){
+			return Clears.call(this, "overview");
+		};
+	// /user/username/saved
+		this.saved = function(){
+			return Clears.call(this, "saved");
+		};
+	// /user/username/submitted
+		this.submitted = function(){
+			return Clears.call(this, "submitted");
+		};
+	// /user/username/upvoted
+		this.upvoted = function(){
+			return Clears.call(this, "upvoted");
+		};
+		return this;
 	};
+	// /getReddit
 };
